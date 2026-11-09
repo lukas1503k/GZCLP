@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="GZCLP linear progression workout tracker — works offline.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GZCLP">
+  <title>GZCLP</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./assets/icon-192.png">
+  <link rel="stylesheet" href="./src/styles/base.css">
+  <link rel="stylesheet" href="./src/styles/screens.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <div id="banner-root" aria-live="polite"></div>
+  <main id="screen" tabindex="-1">
+    <p class="boot-message">Loading…</p>
+  </main>
+  <div id="timer" hidden></div>
+  <nav id="tabs" aria-label="Main">
+    <a href="#/workout" class="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/></svg>
+      <span class="tab-label">Workout</span>
+    </a>
+    <a href="#/history" class="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 20.5h18M6 17v-5M12 17V5M18 17v-8"/></svg>
+      <span class="tab-label">History</span>
+    </a>
+    <a href="#/settings" class="tab">
+      <svg class="tab-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>
+      <span class="tab-label">Settings</span>
+    </a>
+  </nav>
+  <div id="modal-root"></div>
+</body>
+</html>

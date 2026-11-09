@@ -1,0 +1,395 @@
+{
+  "version": 1,
+  "rotation": [
+    "A1",
+    "B1",
+    "A2",
+    "B2"
+  ],
+  "days": {
+    "A1": {
+      "name": "A1",
+      "slots": [
+        {
+          "exerciseId": "squat",
+          "tier": "T1",
+          "label": "T1"
+        },
+        {
+          "exerciseId": "bench",
+          "tier": "T2",
+          "label": "T2"
+        },
+        {
+          "exerciseId": "lat_pulldown",
+          "tier": "T3",
+          "label": "T3a"
+        },
+        {
+          "exerciseId": "hanging_leg_raise",
+          "tier": "T3",
+          "label": "T3b"
+        }
+      ]
+    },
+    "B1": {
+      "name": "B1",
+      "slots": [
+        {
+          "exerciseId": "ohp",
+          "tier": "T1",
+          "label": "T1"
+        },
+        {
+          "exerciseId": "deadlift",
+          "tier": "T2",
+          "label": "T2"
+        },
+        {
+          "exerciseId": "barbell_row",
+          "tier": "T3",
+          "label": "T3a"
+        },
+        {
+          "exerciseId": "barbell_curl",
+          "tier": "T3",
+          "label": "T3b"
+        }
+      ]
+    },
+    "A2": {
+      "name": "A2",
+      "slots": [
+        {
+          "exerciseId": "bench",
+          "tier": "T1",
+          "label": "T1"
+        },
+        {
+          "exerciseId": "squat",
+          "tier": "T2",
+          "label": "T2"
+        },
+        {
+          "exerciseId": "lat_pulldown",
+          "tier": "T3",
+          "label": "T3a"
+        },
+        {
+          "exerciseId": "hanging_leg_raise",
+          "tier": "T3",
+          "label": "T3b"
+        }
+      ]
+    },
+    "B2": {
+      "name": "B2",
+      "slots": [
+        {
+          "exerciseId": "deadlift",
+          "tier": "T1",
+          "label": "T1"
+        },
+        {
+          "exerciseId": "ohp",
+          "tier": "T2",
+          "label": "T2"
+        },
+        {
+          "exerciseId": "barbell_row",
+          "tier": "T3",
+          "label": "T3a"
+        },
+        {
+          "exerciseId": "barbell_curl",
+          "tier": "T3",
+          "label": "T3b"
+        }
+      ]
+    }
+  },
+  "exercises": {
+    "squat": {
+      "id": "squat",
+      "name": "Squat",
+      "type": "barbell",
+      "startingWeight": {
+        "T1": 245,
+        "T2": 185
+      },
+      "increment": 10,
+      "smallIncrement": null,
+      "warmup": true,
+      "plates": true
+    },
+    "bench": {
+      "id": "bench",
+      "name": "Bench press",
+      "type": "barbell",
+      "startingWeight": {
+        "T1": 145,
+        "T2": 110
+      },
+      "increment": 5,
+      "smallIncrement": 2.5,
+      "warmup": true,
+      "plates": true
+    },
+    "ohp": {
+      "id": "ohp",
+      "name": "Overhead press",
+      "type": "barbell",
+      "startingWeight": {
+        "T1": 100,
+        "T2": 75
+      },
+      "increment": 5,
+      "smallIncrement": 2.5,
+      "warmup": true,
+      "plates": true
+    },
+    "deadlift": {
+      "id": "deadlift",
+      "name": "Deadlift",
+      "type": "barbell",
+      "startingWeight": {
+        "T1": 270,
+        "T2": 205
+      },
+      "increment": 10,
+      "smallIncrement": null,
+      "warmup": true,
+      "plates": true
+    },
+    "lat_pulldown": {
+      "id": "lat_pulldown",
+      "name": "Lat pulldown",
+      "type": "machine",
+      "startingWeight": {
+        "T3": 100
+      },
+      "increment": 5,
+      "smallIncrement": null,
+      "warmup": false,
+      "plates": false
+    },
+    "barbell_row": {
+      "id": "barbell_row",
+      "name": "Barbell row",
+      "type": "barbell",
+      "startingWeight": {
+        "T3": 95
+      },
+      "increment": 5,
+      "smallIncrement": null,
+      "warmup": false,
+      "plates": true
+    },
+    "barbell_curl": {
+      "id": "barbell_curl",
+      "name": "Barbell curl",
+      "type": "barbell",
+      "startingWeight": {
+        "T3": null
+      },
+      "increment": 5,
+      "smallIncrement": null,
+      "warmup": false,
+      "plates": true
+    },
+    "hanging_leg_raise": {
+      "id": "hanging_leg_raise",
+      "name": "Hanging leg raise",
+      "type": "bodyweight",
+      "startingWeight": {
+        "T3": null
+      },
+      "startingRepTarget": 10,
+      "increment": 0,
+      "smallIncrement": null,
+      "warmup": false,
+      "plates": false
+    },
+    "rdl": {
+      "id": "rdl",
+      "name": "Romanian deadlift",
+      "type": "barbell",
+      "startingWeight": {
+        "T1": null,
+        "T2": null,
+        "T3": null
+      },
+      "library": true,
+      "increment": 10,
+      "smallIncrement": null,
+      "warmup": true,
+      "plates": true
+    },
+    "front_squat": {
+      "id": "front_squat",
+      "name": "Front squat",
+      "type": "barbell",
+      "startingWeight": {
+        "T1": null,
+        "T2": null,
+        "T3": null
+      },
+      "library": true,
+      "increment": 5,
+      "smallIncrement": null,
+      "warmup": true,
+      "plates": true
+    },
+    "incline_bench": {
+      "id": "incline_bench",
+      "name": "Incline bench press",
+      "type": "barbell",
+      "startingWeight": {
+        "T1": null,
+        "T2": null,
+        "T3": null
+      },
+      "library": true,
+      "increment": 5,
+      "smallIncrement": 2.5,
+      "warmup": true,
+      "plates": true
+    },
+    "dumbbell_row": {
+      "id": "dumbbell_row",
+      "name": "Dumbbell row",
+      "type": "machine",
+      "startingWeight": {
+        "T1": null,
+        "T2": null,
+        "T3": null
+      },
+      "library": true,
+      "increment": 5,
+      "smallIncrement": null,
+      "warmup": false,
+      "plates": false
+    },
+    "chin_up": {
+      "id": "chin_up",
+      "name": "Chin-up",
+      "type": "bodyweight",
+      "startingWeight": {
+        "T1": null,
+        "T2": null,
+        "T3": null
+      },
+      "startingRepTarget": 8,
+      "library": true,
+      "increment": 0,
+      "smallIncrement": null,
+      "warmup": false,
+      "plates": false
+    }
+  },
+  "tiers": {
+    "T1": {
+      "stages": [
+        {
+          "sets": 5,
+          "reps": 3,
+          "amrap": true
+        },
+        {
+          "sets": 6,
+          "reps": 2,
+          "amrap": true
+        },
+        {
+          "sets": 10,
+          "reps": 1,
+          "amrap": true
+        }
+      ],
+      "reset": {
+        "type": "t1-reset",
+        "percentOf5RM": 0.85,
+        "lookbackWorkouts": 3
+      }
+    },
+    "T2": {
+      "stages": [
+        {
+          "sets": 3,
+          "reps": 10,
+          "amrap": false
+        },
+        {
+          "sets": 3,
+          "reps": 8,
+          "amrap": false
+        },
+        {
+          "sets": 3,
+          "reps": 6,
+          "amrap": false
+        }
+      ],
+      "reset": {
+        "type": "t2-reset",
+        "addMin": 15,
+        "addMax": 20
+      }
+    },
+    "T3": {
+      "stages": [
+        {
+          "sets": 3,
+          "reps": 15,
+          "amrap": true
+        }
+      ],
+      "weighted": {
+        "amrapThreshold": 25
+      },
+      "bodyweight": {
+        "sets": 3,
+        "amrapBonus": 5,
+        "repTargetIncrement": 2
+      }
+    }
+  },
+  "defaults": {
+    "barWeight": 45,
+    "plates": [45, 35, 25, 15, 10,
+      5,
+      2.5
+    ],
+    "smallPlates": [
+      1.25
+    ],
+    "rest": {
+      "T1": 180,
+      "T2": 120,
+      "T3": 75,
+      "warmup": 60
+    },
+    "warmup": [
+      {
+        "pct": 0,
+        "reps": 10
+      },
+      {
+        "pct": 0.4,
+        "reps": 5
+      },
+      {
+        "pct": 0.6,
+        "reps": 3
+      },
+      {
+        "pct": 0.75,
+        "reps": 2
+      },
+      {
+        "pct": 0.85,
+        "reps": 1
+      }
+    ]
+  }
+}
