@@ -66,7 +66,7 @@ Where `docs/SPEC.md` and this file disagree on names or shapes, this file wins.
   },
   "defaults": {
     "barWeight": 45,
-    "plates": [45, 35, 25, 10, 5, 2.5],
+    "plates": [45, 35, 25, 15, 10, 5, 2.5],   // gym has 15s (SPEC §5 vectors are tested against the set without 15)
     "smallPlates": [1.25],
     "rest": { "T1": 180, "T2": 120, "T3": 75, "warmup": 60 },
     "warmup": [ {"pct":0,"reps":10}, {"pct":0.4,"reps":5}, {"pct":0.6,"reps":3}, {"pct":0.75,"reps":2}, {"pct":0.85,"reps":1} ]

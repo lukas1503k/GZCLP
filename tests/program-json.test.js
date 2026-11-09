@@ -47,7 +47,7 @@ test("shipped program.json matches SPEC §2", () => {
   assert.equal(ex.dumbbell_row.type, "machine");
   assert.equal(ex.dumbbell_row.plates, false);
   assert.equal(ex.chin_up.type, "bodyweight");
-  assert.deepEqual(program.defaults.plates, [45, 35, 25, 10, 5, 2.5]);
+  assert.deepEqual(program.defaults.plates, [45, 35, 25, 15, 10, 5, 2.5]); // spec set + the gym's 15s
   assert.deepEqual(program.defaults.rest, { T1: 180, T2: 120, T3: 75, warmup: 60 });
 });
 

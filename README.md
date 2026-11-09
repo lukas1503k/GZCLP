@@ -24,7 +24,7 @@ Uses Node's built-in test runner (Node 20+); nothing to install.
 
 ## Editing the program
 
-Everything about the program lives in [`program.json`](program.json): the day rotation, slot order, exercises (starting weights per tier, increments, whether to show plates/warm-ups), tier stage schemes and reset rules, rest defaults, bar weight, available plates and the warm-up scheme. The code reads it at startup — e.g. change `"increment": 10` on squat to `5` and squat progresses by 5 lb. `tests/program-json.test.js` validates the shipped file.
+Everything about the program lives in [`program.json`](program.json): the day rotation, slot order, exercises (starting weights per tier, increments, whether to show plates/warm-ups), tier stage schemes and reset rules, rest defaults, bar weight, available plates per side (`defaults.plates`, currently 45/35/25/15/10/5/2.5; 1.25s are a Settings toggle) and the warm-up scheme. The code reads it at startup — e.g. change `"increment": 10` on squat to `5` and squat progresses by 5 lb. `tests/program-json.test.js` validates the shipped file.
 
 Starting weights only apply to lifts with no saved state yet; use **Settings → Manual override** to change a lift you've already been training.
 

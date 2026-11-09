@@ -6,8 +6,12 @@ import {
 } from "../src/logic/plates.js";
 
 const program = JSON.parse(readFileSync(new URL("../program.json", import.meta.url), "utf8"));
-const cfg = plateConfig(program, { barWeight: 45, smallPlates: false });
-const smallCfg = plateConfig(program, { barWeight: 45, smallPlates: true });
+// SPEC §5 vectors are defined for the spec's plate set (no 15s), so most tests pin it explicitly.
+const SPEC_PLATES = { defaults: { ...program.defaults, plates: [45, 35, 25, 10, 5, 2.5] } };
+const cfg = plateConfig(SPEC_PLATES, { barWeight: 45, smallPlates: false });
+const smallCfg = plateConfig(SPEC_PLATES, { barWeight: 45, smallPlates: true });
+// The shipped program.json reflects the gym's actual plates (includes 15s).
+const gymCfg = plateConfig(program, { barWeight: 45, smallPlates: false });
 const per = (w, c = cfg) => formatPlates(platesPerSide(w, c));
 
 test("plateConfig reads bar and plates from program/settings", () => {
@@ -17,6 +21,27 @@ test("plateConfig reads bar and plates from program/settings", () => {
   assert.equal(plateConfig(program, undefined).barWeight, 45);
   assert.equal(plateConfig(program, { barWeight: 35 }).barWeight, 35);
 });
+
+test("shipped program.json includes 15 lb plates", () => {
+  assert.deepEqual(gymCfg.plates, [45, 35, 25, 15, 10, 5, 2.5]);
+  assert.deepEqual(plateConfig(program, { smallPlates: true }).plates, [45, 35, 25, 15, 10, 5, 2.5, 1.25]);
+});
+
+const GYM_VECTORS = [
+  [45, "bar"],
+  [75, "15"],
+  [100, "25 + 2.5"],
+  [105, "25 + 5"],
+  [115, "35"],
+  [125, "35 + 5"],
+  [110, "25 + 5 + 2.5"],
+  [165, "45 + 15"],
+  [245, "45 + 45 + 10"],
+  [270, "45 + 45 + 15 + 5 + 2.5"],
+];
+for (const [w, text] of GYM_VECTORS) {
+  test(`gym plates (with 15s): ${w} lb -> ${text}`, () => assert.equal(per(w, gymCfg), text));
+}
 
 test("loadStep is 2x smallest plate", () => {
   assert.equal(loadStep(cfg), 5);
