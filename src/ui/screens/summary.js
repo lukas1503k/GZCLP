@@ -61,7 +61,7 @@ function renderT1Decision(ctx, decision, cfg) {
       return;
     }
     let w;
-    try { w = t1ResetWeight(v, cfg, ctx.program); } catch { w = null; }
+    try { w = t1ResetWeight(v, cfg, ctx.program, exercise); } catch { w = null; }
     mount(testedResult, h("span", { class: "muted" }, "New weight: "), w != null ? weightLabel(w, exercise, cfg) : "–");
     testedBtn.disabled = w == null;
   };

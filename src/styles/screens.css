@@ -172,16 +172,20 @@
 .set-btn-reps { font-family: var(--font-num); font-size: 1.75rem; font-weight: 850; line-height: 1; font-variant-numeric: tabular-nums; }
 .set-btn-caption { font-size: var(--fs-xs); color: var(--text-muted); font-weight: 650; margin-top: 4px; }
 .set-btn.is-next { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.set-cell.has-fewer .set-btn.is-next + .set-fewer { border-color: var(--accent); }
 .set-btn.is-amrap:not(.is-success):not(.is-fail) .set-btn-caption { color: var(--tier-t1); }
 .set-btn.is-success { background: var(--success-bg); border-color: var(--success); }
 .set-btn.is-success .set-btn-caption { color: var(--success); }
 .set-btn.is-fail { background: var(--fail-bg); border-color: var(--fail); }
 .set-btn.is-fail .set-btn-caption { color: var(--fail); }
+.set-cell.has-fewer { gap: 0; }
+.set-cell.has-fewer .set-btn { border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom-width: 1px; min-height: 64px; }
 .set-fewer {
   min-height: var(--tap);
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
+  border: 2px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--surface);
   color: var(--text-muted);
   font: inherit;
   font-size: var(--fs-xs);
@@ -363,6 +367,15 @@
 .lift-next { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .lift-next div { padding: 8px 10px; border-radius: var(--radius-sm); background: var(--surface-2); }
 .lift-next dt { color: var(--text-dim); font-size: var(--fs-xs); font-weight: 650; text-transform: uppercase; letter-spacing: 0.04em; }
+.lift-changes { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; padding-top: 10px; border-top: 1px solid var(--border); }
+.lift-changes-title { color: var(--text-muted); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.05em; }
+.lift-change-list { display: flex; flex-direction: column; gap: 6px; }
+.lift-change { padding: 8px 10px; border-radius: var(--radius-sm); background: var(--surface-2); border-left: 3px solid var(--accent); }
+.lift-change.is-reset { border-left-color: var(--warn); }
+.lift-change-head { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-xs); }
+.lift-change-type { font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.lift-change-diff { font-weight: 650; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.lift-change-reason { color: var(--text-muted); font-size: var(--fs-sm); }
 .lift-next dd { margin: 2px 0 0; font-weight: 700; font-size: var(--fs-sm); }
 
 /* ---------- settings ---------- */

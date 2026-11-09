@@ -4,7 +4,7 @@ import { h, mount, formatDate, fmtNum } from "../dom.js";
 import { plateConfig, plateBreakdown } from "../../logic/plates.js";
 import { allSetsDone, nextSet } from "../../logic/workout.js";
 import { formatRemaining } from "../../services/timer.js";
-import { weightLabel } from "../components/plateBadge.js";
+import { weightLabel, plateBadge } from "../components/plateBadge.js";
 import { createSetButton } from "../components/setButton.js";
 import { openRepEntry } from "../components/repEntry.js";
 import { confirmDialog, promptNumber, chooseOption, showToast } from "../components/dialog.js";
@@ -97,7 +97,7 @@ function renderWarmups(ctx, workout, slot, cfg, exercise) {
   const defaultOpen = doneCount < slot.warmups.length && !slot.sets.some((x) => x.done);
   const open = warmupOpen.has(key) ? warmupOpen.get(key) : defaultOpen;
 
-  const details = h("details", { class: "warmups", open },
+  const details = h("details", { class: "warmups" },
     h("summary", { class: "warmups-summary" },
       h("span", {}, "Warm-ups"),
       h("span", { class: "warmups-count" }, `${doneCount}/${slot.warmups.length}`)),
@@ -116,7 +116,15 @@ function renderWarmups(ctx, workout, slot, cfg, exercise) {
       );
     })),
   );
-  details.addEventListener("toggle", () => warmupOpen.set(key, details.open));
+  // Setting `open` programmatically fires an async "toggle"; ignore that one so the
+  // default (collapse once a working set is logged) isn't mistaken for a user choice.
+  let ignoreNextToggle = open;
+  details.open = open;
+  details.addEventListener("toggle", () => {
+    if (ignoreNextToggle && details.open === open) { ignoreNextToggle = false; return; }
+    ignoreNextToggle = false;
+    warmupOpen.set(key, details.open);
+  });
   return details;
 }
 
@@ -127,7 +135,6 @@ function renderSlot(ctx, workout, slot, cfg, next) {
   const restSec = ctx.state.settings?.rest?.[slot.tier];
   const success = slot.sets.length && slot.sets.every((x) => x.done && x.reps >= x.target);
   const allDone = slot.sets.every((x) => x.done);
-  const firstUndone = slot.sets.findIndex((x) => !x.done);
 
   let weightLine;
   if (bodyweight) {
@@ -135,7 +142,9 @@ function renderSlot(ctx, workout, slot, cfg, next) {
       h("span", { class: "plate-badge" }, h("span", { class: "plate-weight" }, "Bodyweight")),
       slot.repTarget != null ? h("span", { class: "slot-reptarget" }, `target ${slot.repTarget} reps`) : null);
   } else if (!needsWeight) {
-    weightLine = h("div", { class: "slot-weight" }, weightLabel(slot.weight, exercise, cfg));
+    const req = slot.requestedWeight;
+    const inexact = exercise.plates && req != null && req !== slot.weight;
+    weightLine = h("div", { class: "slot-weight" }, inexact ? plateBadge(req, cfg) : weightLabel(slot.weight, exercise, cfg));
   }
 
   const body = needsWeight
@@ -149,7 +158,7 @@ function renderSlot(ctx, workout, slot, cfg, next) {
     },
       slot.sets.map((set, i) => {
         const cell = createSetButton({
-          set, index: i, total: slot.sets.length, showFewer: i === firstUndone,
+          set, index: i, total: slot.sets.length,
           isNext: !!next && next.slotIndex === slot.slotIndex && next.setIndex === i,
           onTap: () => handleSetTap(ctx, slot, i, "tap"),
           onFewer: () => handleSetTap(ctx, slot, i, set.done ? "edit" : "fewer"),
@@ -221,6 +230,31 @@ async function onFinish(ctx, workout) {
   }
 }
 
+// After a set is logged the rest timer appears; make sure the next set button isn't hidden
+// behind the fixed timer bar / tabs. Checked twice because the timer bar shows a tick later.
+function revealNext(root) {
+  const btn = root.querySelector(".set-btn.is-next");
+  if (!btn || !btn.isConnected) return;
+  const timer = document.getElementById("timer");
+  const tabs = document.getElementById("tabs");
+  const timerTop = timer && !timer.hidden ? timer.getBoundingClientRect().top : Infinity;
+  const tabsTop = tabs ? tabs.getBoundingClientRect().top : window.innerHeight;
+  const timerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--timer-h")) || 104;
+  const limit = Math.min(timerTop, tabsTop - (timer && timer.hidden ? timerH + 8 : 0));
+  const r = btn.getBoundingClientRect();
+  const cell = btn.closest(".set-cell") || btn;
+  const bottom = Math.max(r.bottom, cell.getBoundingClientRect().bottom);
+  if (bottom > limit - 8 || r.top < 0) {
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    btn.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+  }
+}
+
+function scheduleRevealNext(root) {
+  requestAnimationFrame(() => revealNext(root));
+  setTimeout(() => revealNext(root), 320);
+}
+
 export function render(root, ctx) {
   const workout = ctx.state.inProgress;
   if (!workout) {
@@ -261,6 +295,7 @@ export function render(root, ctx) {
 
   mount(root, screen);
 
+  if (focusKey && focusKey.startsWith("set:")) scheduleRevealNext(root);
   if (focusKey) {
     const target = root.querySelector(`[data-focus-key="${CSS.escape(focusKey)}"]`);
     if (target && document.activeElement === document.body) target.focus({ preventScroll: true });

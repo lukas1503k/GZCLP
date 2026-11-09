@@ -227,10 +227,12 @@ export function showToast(message, { timeoutMs = 3200 } = {}) {
 export function showUpdateBanner(onReload) {
   const root = bannerRoot();
   if (root.querySelector(".update-banner")) return;
+  const dismiss = () => { banner.remove(); document.documentElement.classList.remove("has-banner"); };
   const banner = h("div", { class: "update-banner", role: "alert" },
     h("span", { class: "update-text" }, "Update available"),
     h("button", { type: "button", class: "btn btn-primary btn-small", onClick: () => onReload?.() }, "Reload"),
-    h("button", { type: "button", class: "btn btn-ghost btn-small", "aria-label": "Dismiss", onClick: () => banner.remove() }, "✕"),
+    h("button", { type: "button", class: "btn btn-ghost btn-small", "aria-label": "Dismiss", onClick: dismiss }, "✕"),
   );
   root.prepend(banner);
+  document.documentElement.classList.add("has-banner");
 }

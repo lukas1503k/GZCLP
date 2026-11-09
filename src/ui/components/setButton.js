@@ -49,8 +49,9 @@ export function createSetButton({ set, index, onTap, onFewer, isNext = false, to
     onTap?.();
   });
 
-  const cell = h("div", { class: "set-cell" }, main);
-  if (!set.done && onFewer && showFewer) {
+  const withFewer = !set.done && onFewer && showFewer;
+  const cell = h("div", { class: `set-cell${withFewer ? " has-fewer" : ""}` }, main);
+  if (withFewer) {
     cell.append(h("button", {
       type: "button", class: "set-fewer", "aria-label": `Log fewer reps for set ${setNo}`, onClick: () => onFewer(),
     }, "fewer"));

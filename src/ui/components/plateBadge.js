@@ -14,7 +14,7 @@ export function plateBadge(weight, cfg, { compact = false } = {}) {
     h("span", { class: "plate-weight" }, `${fmtNum(b.loaded, 2)} lb`),
     h("span", { class: "plate-sep", "aria-hidden": "true" }, " · "),
     h("span", { class: "plate-text" }, h("span", { class: "visually-hidden" }, "per side: "), b.text),
-    b.exact ? null : h("span", { class: "plate-note" }, `nearest loadable to ${fmtNum(b.requested, 2)}`),
+    b.exact ? null : h("span", { class: "plate-note" }, `nearest loadable (requested ${fmtNum(b.requested, 2)} lb)`),
   );
   return el;
 }

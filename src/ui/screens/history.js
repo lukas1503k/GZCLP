@@ -12,6 +12,39 @@ import { confirmDialog, showToast } from "../components/dialog.js";
 const TABS = [["log", "Log"], ["progress", "e1RM"], ["lifts", "Lifts"]];
 let activeTab = "log";
 const expanded = new Set();
+const allChanges = new Set();
+const CHANGE_CAP = 5;
+const SHOWN_EVENT_TYPES = new Set(["override", "reset"]);
+const REASON_LABELS = { "tested-5rm": "Reset from tested 5RM", "estimated-5rm": "Reset from estimated 5RM", "t2-reset": "T2 reset" };
+
+function diffText(from = {}, to = {}) {
+  const parts = [];
+  const lbs = (v) => (v == null ? "–" : `${fmtNum(v, 2)} lb`);
+  if ((from.weight ?? null) !== (to.weight ?? null)) parts.push(`weight ${lbs(from.weight)} → ${lbs(to.weight)}`);
+  if ((from.stage ?? null) !== (to.stage ?? null)) parts.push(`stage ${from.stage ?? "–"} → ${to.stage ?? "–"}`);
+  if ((from.stageStartWeight ?? null) !== (to.stageStartWeight ?? null)) parts.push(`stage-1 start ${lbs(from.stageStartWeight)} → ${lbs(to.stageStartWeight)}`);
+  if ((from.repTarget ?? null) !== (to.repTarget ?? null)) parts.push(`rep target ${from.repTarget ?? "–"} → ${to.repTarget ?? "–"}`);
+  return parts.length ? parts.join(", ") : "no change";
+}
+
+function renderLiftChanges(ctx, lift, key) {
+  const events = (lift?.history || []).filter((e) => e && SHOWN_EVENT_TYPES.has(e.type)).slice().reverse();
+  if (!events.length) return null;
+  const showAll = allChanges.has(key);
+  const shown = showAll ? events : events.slice(0, CHANGE_CAP);
+  return h("div", { class: "lift-changes" },
+    h("h4", { class: "lift-changes-title" }, "Changes"),
+    h("ol", { class: "lift-change-list" }, shown.map((e) => h("li", { class: `lift-change is-${e.type}` },
+      h("div", { class: "lift-change-head" },
+        h("span", { class: "lift-change-type" }, e.type === "override" ? "Manual" : "Reset"),
+        h("span", { class: "muted" }, formatDate(e.at, { month: "short", day: "numeric", year: "numeric" }))),
+      h("p", { class: "lift-change-diff" }, diffText(e.from, e.to)),
+      e.reason ? h("p", { class: "lift-change-reason" }, e.type === "override" ? `“${e.reason}”` : (REASON_LABELS[e.reason] || e.reason)) : null))),
+    events.length > CHANGE_CAP ? h("button", {
+      type: "button", class: "btn btn-ghost btn-block", "aria-expanded": showAll ? "true" : "false",
+      onClick: () => { if (showAll) allChanges.delete(key); else allChanges.add(key); render(rootRef, ctxRef); },
+    }, showAll ? "Show fewer" : `Show all ${events.length} changes`) : null);
+}
 
 function exerciseOf(ctx, id) {
   return ctx.program.exercises?.[id] || { id, name: id, type: "barbell", plates: false };
@@ -164,6 +197,7 @@ function renderLiftCard(ctx, { exerciseId, tier }, cfg) {
     preview ? h("dl", { class: "lift-next" },
       h("div", {}, h("dt", {}, "If you hit it"), h("dd", {}, preview.onSuccess)),
       h("div", {}, h("dt", {}, "If you miss"), h("dd", {}, preview.onFail))) : null,
+    renderLiftChanges(ctx, lift, `${exerciseId}:${tier}`),
   );
 }
 
