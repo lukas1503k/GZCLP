@@ -43,7 +43,7 @@
   --fs-xxl: 2.25rem;
 
   --tabs-h: 64px;
-  --timer-h: 92px;
+  --timer-h: 104px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);

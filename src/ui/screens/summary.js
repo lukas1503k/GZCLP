@@ -41,7 +41,7 @@ function renderChange(ctx, change, workout, cfg) {
       h("span", { class: "change-reps" }, ` — reps ${setsText(slot)}`)) : null,
     h("p", { class: `change-message${pending ? " is-pending" : ""}` }, change.message),
     change.to && change.to.weight != null && exercise.plates
-      ? h("div", { class: "change-next" }, h("span", { class: "muted" }, "Next: "), weightLabel(change.to.weight, exercise, cfg, { compact: true }))
+      ? h("div", { class: "change-next" }, h("span", { class: "muted" }, "Load: "), weightLabel(change.to.weight, exercise, cfg, { compact: true }))
       : null,
   );
 }

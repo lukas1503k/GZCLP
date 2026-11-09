@@ -6,7 +6,7 @@ import { h } from "../dom.js";
 const LONG_PRESS_MS = 500;
 const MOVE_TOLERANCE_PX = 12;
 
-export function createSetButton({ set, index, onTap, onFewer, isNext = false, total = null }) {
+export function createSetButton({ set, index, onTap, onFewer, isNext = false, total = null, showFewer = true }) {
   const success = set.done && set.reps != null && set.reps >= set.target;
   const state = set.done ? (success ? "is-success" : "is-fail") : isNext ? "is-next" : "is-todo";
   const targetText = `${set.target}${set.amrap ? "+" : ""}`;
@@ -50,12 +50,10 @@ export function createSetButton({ set, index, onTap, onFewer, isNext = false, to
   });
 
   const cell = h("div", { class: "set-cell" }, main);
-  if (!set.done && onFewer) {
+  if (!set.done && onFewer && showFewer) {
     cell.append(h("button", {
       type: "button", class: "set-fewer", "aria-label": `Log fewer reps for set ${setNo}`, onClick: () => onFewer(),
     }, "fewer"));
-  } else {
-    cell.append(h("span", { class: "set-fewer-spacer", "aria-hidden": "true" }));
   }
   return cell;
 }

@@ -114,7 +114,7 @@
 .warmup-list { display: flex; flex-direction: column; gap: 6px; padding: 0 8px 8px; }
 .warmup-btn {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1.3fr) minmax(0, 1fr) 42px;
+  grid-template-columns: 30px minmax(0, 1fr) auto 36px;
   align-items: center;
   gap: 8px;
   min-height: var(--tap);
@@ -144,7 +144,8 @@
 /* set buttons */
 .set-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  grid-template-columns: repeat(var(--cols, 5), minmax(0, 1fr));
+  align-items: start;
   gap: 8px;
 }
 .set-cell { display: flex; flex-direction: column; gap: 4px; }
@@ -177,7 +178,7 @@
 .set-btn.is-fail { background: var(--fail-bg); border-color: var(--fail); }
 .set-btn.is-fail .set-btn-caption { color: var(--fail); }
 .set-fewer {
-  min-height: 44px;
+  min-height: var(--tap);
   border: 1px dashed var(--border);
   border-radius: var(--radius-sm);
   background: transparent;
@@ -188,7 +189,6 @@
   cursor: pointer;
   touch-action: manipulation;
 }
-.set-fewer-spacer { min-height: 44px; }
 
 .finish-area { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
 .finish-note { text-align: center; color: var(--text-muted); font-size: var(--fs-sm); }
@@ -211,12 +211,21 @@
 .timer-bar.is-warmup .timer-fill { background: var(--tier-t3); }
 .timer-bar.is-done { border-color: var(--success); }
 .timer-bar.is-done .timer-time { color: var(--success); }
-.timer-row { display: flex; align-items: center; gap: 8px; height: 100%; padding: 6px 8px 2px 14px; }
-.timer-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-.timer-top { display: flex; align-items: baseline; gap: 10px; }
+.timer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "info controls" "next next";
+  align-items: center;
+  column-gap: 8px;
+  height: 100%;
+  padding: 8px 8px 6px 14px;
+}
+.timer-info { grid-area: info; min-width: 0; display: flex; flex-direction: column; }
+.timer-controls { grid-area: controls; }
+.timer-top { display: flex; flex-direction: column; }
 .timer-label { font-size: var(--fs-xs); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 750; }
 .timer-time { font-family: var(--font-num); font-size: 2.375rem; font-weight: 850; line-height: 1.05; font-variant-numeric: tabular-nums; }
-.timer-next { color: var(--text-muted); font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.timer-next { grid-area: next; color: var(--text-muted); font-size: var(--fs-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .timer-controls { display: flex; gap: 6px; }
 .timer-btn {
   min-width: var(--tap);
@@ -282,7 +291,7 @@
   border: 1px solid var(--border);
 }
 .segment {
-  min-height: 48px;
+  min-height: var(--tap);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -347,7 +356,7 @@
 .chart-readout { color: var(--text-muted); font-size: var(--fs-sm); min-height: 1.4em; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .chart-empty { color: var(--text-dim); font-size: var(--fs-sm); padding: 8px 0; }
 .chart-latest { font-weight: 800; color: var(--tier-t1); font-variant-numeric: tabular-nums; }
-.chart-table > summary { min-height: 48px; display: flex; align-items: center; color: var(--accent); font-weight: 650; cursor: pointer; }
+.chart-table > summary { min-height: var(--tap); display: flex; align-items: center; color: var(--accent); font-weight: 650; cursor: pointer; }
 
 .lift-card { display: flex; flex-direction: column; gap: 8px; }
 .lift-recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }

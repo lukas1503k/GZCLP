@@ -1,0 +1,10 @@
+/* Dev harness only. */
+#dev-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: calc(env(safe-area-inset-top, 0px) + 6px) 12px 6px;
+  background: #2a1a3a; color: #e9d8ff; font-size: 13px;
+  border-bottom: 1px solid #5a3a7a;
+}
+#dev-bar select, #dev-bar button { font: inherit; padding: 6px 8px; background: #1b1026; color: inherit; border: 1px solid #5a3a7a; border-radius: 6px; }
+#dev-bar select { flex: 1; min-width: 0; }
+html.bare #dev-bar { display: none; }

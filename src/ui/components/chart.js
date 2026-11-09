@@ -70,7 +70,7 @@ export function renderE1rmChart(el, series, { onPointTap, title = "e1RM" } = {})
   points.forEach((p, i) => {
     const dot = s("circle", { class: "chart-dot", cx: x(i), cy: y(p.e1RM), r: 5 });
     const hit = s("circle", {
-      class: "chart-hit", cx: x(i), cy: y(p.e1RM), r: 18, tabindex: "0", role: "button",
+      class: "chart-hit", cx: x(i), cy: y(p.e1RM), r: 28, tabindex: "0", role: "button",
       "aria-label": pointText(p),
     });
     hit.addEventListener("click", () => select(i));

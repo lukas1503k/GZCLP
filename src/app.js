@@ -296,7 +296,7 @@ function registerServiceWorker() {
     showUpdateBanner(() => actions.reloadForUpdate());
   };
   navigator.serviceWorker.addEventListener("message", (e) => {
-    if (e.data && e.data.type === "sw-updated") offerUpdate();
+    if (e.data?.type === "sw-updated" && e.data.version !== VERSION) offerUpdate();
   });
   navigator.serviceWorker.addEventListener("controllerchange", offerUpdate);
   navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then((reg) => {

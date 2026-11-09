@@ -35,6 +35,12 @@ function countDone(workout) {
   return { done, total };
 }
 
+function gridColumns(n) {
+  if (n <= 5) return Math.max(n, 3);
+  if (n === 6) return 3;
+  return 5;
+}
+
 function anyProgress(workout) {
   return workout.slots.some((slot) => slot.sets.some((x) => x.done) || slot.warmups.some((w) => w.done));
 }
@@ -121,6 +127,7 @@ function renderSlot(ctx, workout, slot, cfg, next) {
   const restSec = ctx.state.settings?.rest?.[slot.tier];
   const success = slot.sets.length && slot.sets.every((x) => x.done && x.reps >= x.target);
   const allDone = slot.sets.every((x) => x.done);
+  const firstUndone = slot.sets.findIndex((x) => !x.done);
 
   let weightLine;
   if (bodyweight) {
@@ -136,10 +143,13 @@ function renderSlot(ctx, workout, slot, cfg, next) {
       type: "button", class: "btn btn-primary btn-block btn-xl", dataset: { focusKey: `sw:${slot.slotIndex}` },
       onClick: () => handleStartingWeight(ctx, slot),
     }, "Enter starting weight")
-    : h("div", { class: "set-grid", role: "group", "aria-label": `${exercise.name} working sets` },
+    : h("div", {
+      class: "set-grid", role: "group", "aria-label": `${exercise.name} working sets`,
+      style: { "--cols": String(gridColumns(slot.sets.length)) },
+    },
       slot.sets.map((set, i) => {
         const cell = createSetButton({
-          set, index: i, total: slot.sets.length,
+          set, index: i, total: slot.sets.length, showFewer: i === firstUndone,
           isNext: !!next && next.slotIndex === slot.slotIndex && next.setIndex === i,
           onTap: () => handleSetTap(ctx, slot, i, "tap"),
           onFewer: () => handleSetTap(ctx, slot, i, set.done ? "edit" : "fewer"),

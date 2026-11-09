@@ -13,12 +13,13 @@ export function createTimerBar(el, { onAdjust, onSkip } = {}) {
   const bar = h("div", { class: "timer-bar", role: "region", "aria-label": "Rest timer" },
     progress,
     h("div", { class: "timer-row" },
-      h("div", { class: "timer-info" }, h("div", { class: "timer-top" }, label, time), next),
+      h("div", { class: "timer-info" }, h("div", { class: "timer-top" }, label, time)),
       h("div", { class: "timer-controls" },
         h("button", { type: "button", class: "timer-btn", "aria-label": "Subtract 30 seconds", onClick: () => onAdjust?.(-30) }, "−30"),
         h("button", { type: "button", class: "timer-btn", "aria-label": "Add 30 seconds", onClick: () => onAdjust?.(30) }, "+30"),
         h("button", { type: "button", class: "timer-btn timer-skip", "aria-label": "Skip rest", onClick: () => onSkip?.() }, "Skip"),
       ),
+      next,
     ),
   );
   mount(el, bar);
