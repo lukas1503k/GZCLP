@@ -28,7 +28,7 @@ Everything about the program lives in [`program.json`](program.json): the day ro
 
 Starting weights only apply to lifts with no saved state yet; use **Settings → Manual override** to change a lift you've already been training.
 
-After editing any shipped file, bump the version (below) so installed copies pick it up.
+After editing `program.json` (or any shipped file) on a deployed site, bump the version and regenerate `precache.js` (below). The service worker serves files cache-first, so installed copies keep the old `program.json` until the version changes.
 
 ## Deploy to GitHub Pages
 
