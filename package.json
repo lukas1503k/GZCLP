@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test \"tests/**/*.test.js\""
+    "test": "node --test \"tests/**/*.test.js\"",
+    "precache": "node tools/gen-precache.mjs",
+    "icons": "node tools/make-icons.mjs"
   }
 }
