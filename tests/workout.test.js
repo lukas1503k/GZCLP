@@ -88,3 +88,17 @@ test("allSetsDone / nextSet / describeSet", () => {
   assert.equal(allSetsDone(w), false);
   assert.equal(describeSet(w, program, nextSet(w)), "Hanging leg raise · set 3 of 3");
 });
+
+test("requestedWeight carries the raw lift weight; differs from weight when not loadable", () => {
+  const s = applyOverride(fresh(), "bench", "T2", { weight: 117.5 }, null, 1);
+  const slot = buildSlot(s, program, "A1", 1);
+  assert.equal(slot.weight, 115); // 117.5 tie -> down
+  assert.equal(slot.requestedWeight, 117.5);
+  const on = buildSlot({ ...s, settings: { ...s.settings, smallPlates: true } }, program, "A1", 1);
+  assert.equal(on.weight, 117.5);
+  assert.equal(on.requestedWeight, 117.5);
+  const plain = buildSlot(fresh(), program, "A1", 0);
+  assert.equal(plain.requestedWeight, plain.weight);
+  assert.equal(buildSlot(fresh(), program, "B1", 3).requestedWeight, null);
+  assert.equal(buildSlot(fresh(), program, "A1", 3).requestedWeight, null);
+});

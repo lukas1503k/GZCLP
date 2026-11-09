@@ -185,3 +185,34 @@ test("addCustomExercise validates id and is usable through effectiveProgram", ()
   assert.equal(s.lifts.custom_goblet.T3.weight, 50);
   assert.equal(buildSlot(s, program, "A1", 2).weight, 50);
 });
+
+test("undo restores only the undone workout's lifts; later changes to other lifts survive", () => {
+  let s = ensureLifts(empty(), base);
+  const before = structuredClone(s);
+  s = next(s, base, 100); // A1: squat T1, bench T2, lat_pulldown T3, leg raise T3 progress
+  s = applyOverride(s, "barbell_curl", "T3", { weight: 65 }, "starting weight", 120); // B1 slot, set after finishing A1
+  s = applyOverride(s, "deadlift", "T1", { weight: 300 }, "settings", 130);
+  s = applyOverride(s, "rdl", "T2", { weight: 135 }, "starting weight", 140); // substitute weight
+  const undone = undoLastWorkout(s);
+  for (const [id, tier] of [["squat", "T1"], ["bench", "T2"], ["lat_pulldown", "T3"], ["hanging_leg_raise", "T3"]]) {
+    assert.deepEqual(undone.lifts[id][tier], before.lifts[id][tier], `${id} ${tier} restored exactly`);
+  }
+  assert.equal(undone.lifts.barbell_curl.T3.weight, 65);
+  assert.equal(undone.lifts.barbell_curl.T3.history.length, 1);
+  assert.equal(undone.lifts.deadlift.T1.weight, 300);
+  assert.equal(undone.lifts.rdl.T2.weight, 135);
+  assert.deepEqual(undone.lifts.squat.T2, s.lifts.squat.T2);
+  assert.equal(undone.rotationIndex, 0);
+});
+
+test("undo deletes lift states the workout created (absent from snapshot)", () => {
+  let s = ensureLifts(empty(), base);
+  s = setSubstitution(s, "A1", 3, "chin_up"); // no ensureLifts: the workout itself creates chin_up T3
+  const program = effectiveProgram(base, s.program);
+  assert.equal(s.lifts.chin_up, undefined);
+  const after = next(s, program, 100);
+  assert.equal(after.lifts.chin_up.T3.repTarget, 8);
+  const undone = undoLastWorkout(after);
+  assert.equal(undone.lifts.chin_up, undefined);
+  assert.deepEqual(undone.lifts, s.lifts);
+});

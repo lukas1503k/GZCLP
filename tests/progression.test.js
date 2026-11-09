@@ -373,3 +373,32 @@ test("previewOutcomes", () => {
   assert.deepEqual(pv("hanging_leg_raise", "T3"), { onSuccess: "Target 12 reps (last set ≥ 15)", onFail: "Same target (10 reps)" });
   assert.equal(pv("barbell_curl", "T3").onSuccess, "Set a starting weight");
 });
+
+test("plates:false exercise in a T1 slot: reset weights are not rounded to the bar/plates", () => {
+  const p = structuredClone(program);
+  p.exercises.custom_press = { id: "custom_press", name: "Machine press", type: "machine", startingWeight: { T1: 30 }, increment: 5, smallIncrement: null, warmup: false, plates: false };
+  p.days.A1.slots[0] = { exerciseId: "custom_press", tier: "T1", label: "T1" };
+  const cfg = plateConfig(p, SETTINGS);
+  const ex = p.exercises.custom_press;
+  assert.equal(t1ResetWeight(40, cfg, p), 45, "no exercise -> legacy loadable rounding");
+  assert.equal(t1ResetWeight(40, cfg, p, ex), 34);
+  assert.equal(t1ResetWeight(250, cfg, p, program.exercises.squat), 210);
+
+  let s = ensureLifts({ ...fresh(), lifts: {} }, p);
+  s = applyOverride(s, "custom_press", "T1", { stage: 3 }, null, 1);
+  const w = buildWorkout(s, p, "A1", 10);
+  assert.equal(w.slots[0].weight, 30);
+  assert.deepEqual(w.slots[0].warmups, []);
+  let inProgress = w;
+  for (const slot of w.slots) slot.sets.forEach((x, i) => { inProgress = logSet(inProgress, slot.slotIndex, i, slot.slotIndex === 0 ? (i === 0 ? 4 : 0) : x.target); });
+  const r = finishWorkout({ ...s, inProgress }, p, 20);
+  const d = r.pendingDecisions[0];
+  // best set 30x4 -> e1RM 34, 5RM 29.14, x0.85 = 24.77 (not rounded up to the 45 bar)
+  close(d.suggestion.weight, Math.round(0.85 * (30 * (1 + 4 / 30)) / (1 + 5 / 30) * 10000) / 10000);
+  assert.ok(d.suggestion.weight < 45);
+  const est = resolveDecision(r.state, d, { method: "estimate" }, p, 30);
+  assert.equal(est.lifts.custom_press.T1.weight, d.suggestion.weight);
+  const tested = resolveDecision(r.state, d, { method: "tested", fiveRM: 40 }, p, 30);
+  assert.equal(tested.lifts.custom_press.T1.weight, t1ResetWeight(40, cfg, p, ex));
+  assert.equal(tested.lifts.custom_press.T1.weight, 34);
+});
