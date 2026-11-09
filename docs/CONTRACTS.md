@@ -138,6 +138,7 @@ Slot = {
   tier: "T1" | "T2" | "T3",
   stage: number,
   weight: number | null,          // weight to lift = roundToLoadable(lift.weight) for plate exercises, raw otherwise
+  requestedWeight: number | null, // (added in review round) raw lift.weight before rounding; UI flags ≈ when it differs
   repTarget: number | null,       // bodyweight only
   scheme: string,                 // display, e.g. "5×3", "3×10", "3×15", "3×10+" (×, U+00D7)
   sets: Set[],
@@ -245,7 +246,8 @@ resolveDecision(state, decision, choice, program, now) -> State
   // applies the reset to state.lifts (stage 1, new weight, stageStartWeight = new weight, history Event type "reset"),
   // removes decision from state.pendingDecisions, and patches the matching Change in state.workouts
   // (kind "reset", `to` filled, message updated). Throws on invalid choice (e.g. tested fiveRM <= 0).
-t1ResetWeight(fiveRM, cfg, program) -> number                // roundToLoadable(percentOf5RM * fiveRM)
+t1ResetWeight(fiveRM, cfg, program, exercise?) -> number     // percentOf5RM * fiveRM, rounded via roundWeightFor(exercise) when given, else roundToLoadable
+roundWeightFor(exercise, w, cfg) -> number                   // roundToLoadable if exercise.plates, else w
 previewOutcomes(program, exerciseId, tier, liftState, settings) -> { onSuccess: string, onFail: string }
   // human text for the history/state card, e.g. { onSuccess: "255 lb", onFail: "Stage 2 (6×2) at 245 lb" }
 slotSuccess(slot) -> boolean                                  // every set reps >= target
@@ -268,7 +270,7 @@ finishWorkout(state, program, now) -> { state, changes, pendingDecisions }
   // requires state.inProgress. snapshotBefore = { lifts, rotationIndex } (deep clone, BEFORE applying);
   // applyWorkout; workout.finishedAt = now, workout.changes = changes; strips snapshotBefore from all older workouts;
   // push workout; rotationIndex = advance(); inProgress = null; timer = null; pendingDecisions = [...existing, ...new].
-undoLastWorkout(state) -> State               // restores lifts + rotationIndex from last workout's snapshot, removes that workout,
+undoLastWorkout(state) -> State               // restores rotationIndex, and lifts ONLY for the (exerciseId, tier) pairs in the undone workout's slots, from its snapshot, removes that workout,
                                               // removes pendingDecisions with that workoutId, clears inProgress & timer. Throws if nothing to undo.
 canUndo(state) -> boolean
 applyOverride(state, exerciseId, tier, patch, reason, now) -> State

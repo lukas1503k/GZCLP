@@ -215,7 +215,8 @@ function checkSlot(c, s, path) {
   c.optNumberOrNull(s.repTarget, `${path}.repTarget`);
   c.string(s.scheme, `${path}.scheme`);
   if (c.array(s.sets, `${path}.sets`)) s.sets.forEach((x, i) => checkSet(c, x, `${path}.sets[${i}]`));
-  if (s.warmups !== undefined && c.array(s.warmups, `${path}.warmups`)) {
+  c.optNumberOrNull(s.requestedWeight, `${path}.requestedWeight`);
+  if (c.array(s.warmups, `${path}.warmups`)) {
     s.warmups.forEach((x, i) => checkWarmup(c, x, `${path}.warmups[${i}]`));
   }
 }

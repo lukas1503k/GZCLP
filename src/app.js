@@ -190,11 +190,11 @@ const actions = {
     downloadText(filename, text);
   },
   previewImport(text) {
-    const r = parseBackup(text);
+    const r = parseImport(text);
     return r.ok ? { ok: true, summary: r.summary } : { ok: false, error: r.error };
   },
   confirmImport(text) {
-    const r = parseBackup(text);
+    const r = parseImport(text);
     if (!r.ok) { showToast(r.error); return; }
     runner.set(null); timerBar.hide();
     const imported = r.state;
@@ -218,6 +218,23 @@ const actions = {
     location.reload();
   },
 };
+
+// parseBackup checks structure; this also checks the backup's ids against the loaded program,
+// so a backup from a different program.json can't crash the workout screen.
+function parseImport(text) {
+  const r = parseBackup(text);
+  if (!r.ok) return r;
+  const prog = effectiveProgram(baseProgram, r.state.program);
+  const ip = r.state.inProgress;
+  const bad = [];
+  if (ip) {
+    if (!prog.days[ip.dayId]) bad.push(`day "${ip.dayId}"`);
+    for (const slot of ip.slots) if (!prog.exercises[slot.exerciseId]) bad.push(`exercise "${slot.exerciseId}"`);
+  }
+  for (const d of r.state.pendingDecisions) if (!prog.exercises[d.exerciseId]) bad.push(`exercise "${d.exerciseId}"`);
+  if (bad.length) return { ok: false, error: `This backup refers to ${[...new Set(bad)].join(", ")}, which this app's program doesn't have.` };
+  return r;
+}
 
 function downloadText(filename, text) {
   const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));

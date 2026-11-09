@@ -79,3 +79,29 @@ test("invalid input throws", () => {
   assert.throws(() => migrate([]), /state must be an object/);
   assert.throws(() => migrate({ schemaVersion: "1" }), /invalid schema version/);
 });
+
+test("migrate fills missing slot.warmups with [] in workouts and inProgress (any version), without mutating input", () => {
+  const raw = migrate(v0State());
+  delete raw.workouts[0].slots[0].warmups;
+  raw.inProgress = structuredClone(raw.workouts[0]);
+  raw.inProgress.finishedAt = null;
+  const before = structuredClone(raw);
+  const s = migrate(raw);
+  assert.deepEqual(raw, before);
+  assert.deepEqual(s.workouts[0].slots[0].warmups, []);
+  assert.deepEqual(s.inProgress.slots[0].warmups, []);
+  assert.deepEqual(validateState(s).errors, []);
+});
+
+test("validateState requires slot.warmups to be an array and accepts optional requestedWeight", () => {
+  const s = migrate(v0State());
+  s.workouts[0].slots[0].requestedWeight = 247.5;
+  assert.deepEqual(validateState(s).errors, []);
+  s.workouts[0].slots[0].requestedWeight = null;
+  assert.deepEqual(validateState(s).errors, []);
+  s.workouts[0].slots[0].requestedWeight = "heavy";
+  delete s.workouts[0].slots[0].warmups;
+  const { errors } = validateState(s);
+  assert.ok(errors.includes("workouts[0].slots[0].requestedWeight must be a number or null"), errors.join("\n"));
+  assert.ok(errors.includes("workouts[0].slots[0].warmups must be an array"), errors.join("\n"));
+});

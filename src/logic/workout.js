@@ -12,7 +12,8 @@ export function buildSlot(state, program, dayId, slotIndex) {
   const cfg = plateConfig(program, state.settings);
   const isBodyweight = exercise.type === "bodyweight";
 
-  let weight = lift.weight ?? null;
+  const requestedWeight = lift.weight ?? null;
+  let weight = requestedWeight;
   if (weight != null && exercise.plates) weight = roundToLoadable(weight, cfg);
 
   const { stage, sets, scheme } = prescription(program, exercise.id, def.tier, lift);
@@ -28,6 +29,7 @@ export function buildSlot(state, program, dayId, slotIndex) {
     tier: def.tier,
     stage,
     weight,
+    requestedWeight,
     repTarget: isBodyweight ? lift.repTarget : null,
     scheme,
     sets: sets.map((s) => ({ target: s.target, reps: null, amrap: s.amrap, done: false })),

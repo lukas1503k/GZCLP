@@ -82,10 +82,11 @@ export function slotSuccess(slot) {
   return sets.length > 0 && sets.every((s) => s.reps != null && s.reps >= s.target);
 }
 
-export function t1ResetWeight(fiveRM, cfg, program) {
+export function t1ResetWeight(fiveRM, cfg, program, exercise) {
   const reset = Object.values(program.tiers).find((t) => t.reset?.type === "t1-reset")?.reset;
   if (!reset) throw new Error("program has no t1-reset tier");
-  return roundToLoadable(reset.percentOf5RM * fiveRM, cfg);
+  const raw = reset.percentOf5RM * fiveRM;
+  return exercise ? roundWeightFor(exercise, raw, cfg) : roundToLoadable(raw, cfg);
 }
 
 function t1Suggestion(state, workout, program, exercise, tier, cfg) {

@@ -45,7 +45,18 @@ export function canUndo(state) {
 export function undoLastWorkout(state) {
   if (!canUndo(state)) throw new Error("Nothing to undo");
   const last = state.workouts[state.workouts.length - 1];
-  const { lifts, rotationIndex } = structuredClone(last.snapshotBefore);
+  const { lifts: snap, rotationIndex } = structuredClone(last.snapshotBefore);
+  // Restore only the lifts this workout touched; later changes to other lifts survive.
+  const lifts = structuredClone(state.lifts ?? {});
+  for (const { exerciseId, tier } of last.slots ?? []) {
+    const saved = snap?.[exerciseId]?.[tier];
+    if (saved) {
+      lifts[exerciseId] = { ...(lifts[exerciseId] ?? {}), [tier]: saved };
+    } else if (lifts[exerciseId]) {
+      delete lifts[exerciseId][tier];
+      if (Object.keys(lifts[exerciseId]).length === 0) delete lifts[exerciseId];
+    }
+  }
   return {
     ...state,
     lifts,

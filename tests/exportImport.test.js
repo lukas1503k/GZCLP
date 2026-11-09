@@ -204,3 +204,13 @@ test("validateState accepts defaultState and rejects common mistakes", () => {
   assert.ok(errors.some((e) => e.startsWith("timer.kind must be one of")));
   assert.ok(errors.includes("pendingDecisions[0].suggestion must be an object"));
 });
+
+test("import of a hand-edited backup missing slot.warmups normalises to []", () => {
+  const s = fixtureState();
+  delete s.inProgress.slots[0].warmups;
+  delete s.workouts[0].slots[1].warmups;
+  const r = parseBackup(JSON.stringify({ app: "gzclp", schemaVersion: 1, state: s }));
+  assert.equal(r.ok, true, r.error);
+  assert.deepEqual(r.state.inProgress.slots[0].warmups, []);
+  assert.deepEqual(r.state.workouts[0].slots[1].warmups, []);
+});

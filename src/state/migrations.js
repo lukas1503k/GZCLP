@@ -52,5 +52,18 @@ export function migrate(raw) {
     version += 1;
     state.schemaVersion = version;
   }
+  normalize(state);
   return state;
+}
+
+// Runs on every migrate (any version) on the already-cloned state: fills optional-but-assumed fields.
+function normalize(state) {
+  const fixWorkout = (w) => {
+    if (!isPlainObject(w) || !Array.isArray(w.slots)) return;
+    for (const slot of w.slots) {
+      if (isPlainObject(slot) && slot.warmups === undefined) slot.warmups = [];
+    }
+  };
+  if (Array.isArray(state.workouts)) state.workouts.forEach(fixWorkout);
+  fixWorkout(state.inProgress);
 }
