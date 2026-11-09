@@ -240,7 +240,9 @@ function revealNext(root) {
   const timerTop = timer && !timer.hidden ? timer.getBoundingClientRect().top : Infinity;
   const tabsTop = tabs ? tabs.getBoundingClientRect().top : window.innerHeight;
   const timerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--timer-h")) || 104;
-  const limit = Math.min(timerTop, tabsTop - (timer && timer.hidden ? timerH + 8 : 0));
+  const banner = document.querySelector("#banner-root .update-banner");
+  const bannerTop = banner ? banner.getBoundingClientRect().top : Infinity;
+  const limit = Math.min(timerTop, bannerTop, tabsTop - (timer && timer.hidden ? timerH + 8 : 0));
   const r = btn.getBoundingClientRect();
   const cell = btn.closest(".set-cell") || btn;
   const bottom = Math.max(r.bottom, cell.getBoundingClientRect().bottom);

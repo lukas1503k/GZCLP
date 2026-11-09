@@ -119,10 +119,24 @@ function historyWorkouts() {
   return w;
 }
 
+const ev = (daysAgo, type, from, to, reason) => ({
+  at: NOW - daysAgo * DAY, type, workoutId: null, reason, detail: null,
+  from: { weight: null, stage: 1, stageStartWeight: null, repTarget: null, ...from },
+  to: { weight: null, stage: 1, stageStartWeight: null, repTarget: null, ...to },
+});
+
 function currentLifts() {
+  const benchHistory = [
+    ev(19, "override", { weight: 145, stageStartWeight: 145 }, { weight: 140, stageStartWeight: 145 }, "shoulder tweak"),
+    ev(17, "override", { weight: 140, stageStartWeight: 145 }, { weight: 145, stageStartWeight: 145 }, "felt fine"),
+    ev(15, "override", { weight: 145, stage: 1 }, { weight: 145, stage: 2 }, null),
+    ev(13, "override", { weight: 145, stage: 2 }, { weight: 145, stage: 1 }, "misclick"),
+    ev(9, "reset", { weight: 175, stage: 3, stageStartWeight: 145 }, { weight: 150, stage: 1, stageStartWeight: 150 }, "tested-5rm"),
+    ev(2, "override", { weight: 150, stageStartWeight: 150 }, { weight: 155, stageStartWeight: 145 }, "gym has microplates now"),
+  ];
   return {
-    squat: { T1: lift(265, 1, 245), T2: lift(205, 1, 185) },
-    bench: { T1: lift(155, 1, 145), T2: lift(115, 2, 110) },
+    squat: { T1: lift(265, 1, 245, null, [ev(3, "override", { weight: 255, stageStartWeight: 245 }, { weight: 265, stageStartWeight: 245 }, "felt easy, jumped 10")]), T2: lift(205, 1, 185) },
+    bench: { T1: lift(155, 1, 145, null, benchHistory), T2: lift(115, 2, 110, null, [ev(4, "reset", { weight: 130, stage: 3, stageStartWeight: 100 }, { weight: 115, stage: 1, stageStartWeight: 115 }, "t2-reset")]) },
     ohp: { T1: lift(110, 1, 100), T2: lift(80, 2, 75) },
     deadlift: { T1: lift(280, 2, 270), T2: lift(225, 1, 205) },
     lat_pulldown: { T3: lift(105) },
@@ -161,6 +175,7 @@ function workoutMid() {
     ],
   };
   inProgress.slots[1].sets = sets(8, 3, false, []);
+  inProgress.slots[1].requestedWeight = 117.5; // not loadable with 2.5s -> shows the ≈ flag
   return base({
     inProgress,
     timer: { endsAt: NOW + 128 * 1000, durationSec: 180, exerciseId: "squat", slotIndex: 0, setIndex: 1, kind: "working", nextLabel: "Squat · set 3 of 5" },
