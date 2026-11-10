@@ -43,7 +43,7 @@ Where `docs/SPEC.md` and this file disagree on names or shapes, this file wins.
       "startingWeight": { "T1": 245, "T2": 185 },             // per tier; null = prompt on first use
       "increment": 10,                                          // lb added on success (any tier)
       "smallIncrement": null,                                   // lb used instead when settings.smallIncrements && settings.smallPlates (bench/ohp: 2.5)
-      "warmup": true,                                           // generate warm-ups when used as T1
+      "warmup": true,                                           // generate warm-ups (any tier; machines skip the empty-bar set)
       "plates": true                                            // show plate breakdown
     },
     "hanging_leg_raise": {

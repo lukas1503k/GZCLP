@@ -29,11 +29,13 @@ test("buildWorkout A1 uses starting weights from program.json", () => {
   assert.deepEqual(w.slots[0].sets[4], { target: 3, reps: null, amrap: true, done: false });
 });
 
-test("warm-ups only for T1 exercises with warmup:true", () => {
+test("warm-ups for every tier with warmup:true and a weight", () => {
   const w = buildWorkout(fresh(), program, "A1", 1);
+  const brief = (slot) => slot.warmups.map((x) => `${x.weight}x${x.reps}`).join(",");
   assert.deepEqual(w.slots[0].warmups.map((x) => [x.weight, x.reps, x.done]), [[45, 10, false], [100, 5, false], [145, 3, false], [185, 2, false], [210, 1, false]]);
-  assert.deepEqual(w.slots[1].warmups, []); // bench as T2
-  assert.deepEqual(w.slots[2].warmups, []);
+  assert.equal(brief(w.slots[1]), "45x10,65x3,80x2,95x1"); // bench as T2
+  assert.equal(brief(w.slots[2]), "40x5,60x3,75x2,85x1"); // lat pulldown (machine): no bar set
+  assert.deepEqual(w.slots[3].warmups, []); // bodyweight
   const b2 = buildWorkout(fresh(), program, "B2", 1);
   assert.equal(b2.slots[0].exerciseId, "deadlift");
   assert.equal(b2.slots[0].warmups.length, 5);
@@ -67,7 +69,7 @@ test("logSet / clearSet / toggleWarmup are pure", () => {
   assert.throws(() => logSet(w0, 0, 0, -1));
   assert.throws(() => logSet(w0, 0, 0, 2.5));
   assert.throws(() => logSet(w0, 0, 99, 3));
-  assert.throws(() => toggleWarmup(w0, 1, 0));
+  assert.throws(() => toggleWarmup(w0, 3, 0));
 });
 
 test("allSetsDone / nextSet / describeSet", () => {

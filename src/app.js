@@ -176,7 +176,7 @@ const actions = {
       startingWeight: type === "bodyweight" ? { T1: null, T2: null, T3: null } : sw,
       ...(type === "bodyweight" ? { startingRepTarget: 10 } : {}),
       increment: type === "bodyweight" ? 0 : Number(increment) || 5,
-      smallIncrement: null, warmup: isBarbell, plates: isBarbell,
+      smallIncrement: null, warmup: type !== "bodyweight", plates: isBarbell,
     }));
     return id;
   },

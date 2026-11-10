@@ -170,7 +170,7 @@
       },
       "increment": 5,
       "smallIncrement": null,
-      "warmup": false,
+      "warmup": true,
       "plates": false
     },
     "barbell_row": {
@@ -182,7 +182,7 @@
       },
       "increment": 5,
       "smallIncrement": null,
-      "warmup": false,
+      "warmup": true,
       "plates": true
     },
     "barbell_curl": {
@@ -194,7 +194,7 @@
       },
       "increment": 5,
       "smallIncrement": null,
-      "warmup": false,
+      "warmup": true,
       "plates": true
     },
     "hanging_leg_raise": {
@@ -267,7 +267,7 @@
       "library": true,
       "increment": 5,
       "smallIncrement": null,
-      "warmup": false,
+      "warmup": true,
       "plates": false
     },
     "chin_up": {
@@ -356,7 +356,12 @@
   },
   "defaults": {
     "barWeight": 45,
-    "plates": [45, 35, 25, 15, 10,
+    "plates": [
+      45,
+      35,
+      25,
+      15,
+      10,
       5,
       2.5
     ],

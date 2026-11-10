@@ -18,8 +18,9 @@ export function buildSlot(state, program, dayId, slotIndex) {
 
   const { stage, sets, scheme } = prescription(program, exercise.id, def.tier, lift);
   const warmups =
-    def.tier === "T1" && exercise.warmup && weight != null
-      ? warmupSets(weight, cfg, program.defaults.warmup).map((w) => ({ ...w, done: false }))
+    exercise.warmup && weight != null
+      ? warmupSets(weight, cfg, program.defaults.warmup, { plates: !!exercise.plates })
+          .map((w) => ({ ...w, done: false }))
       : [];
 
   return {
