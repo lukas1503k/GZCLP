@@ -294,11 +294,11 @@ test("T2: two consecutive reset cycles use the current stageStartWeight", () => 
 // ---------- T3 ----------
 
 test("T3 weighted: last set >= 25 -> + increment; 24 -> unchanged", () => {
-  let r = doDay(fresh(), "A1", { T3a: [15, 15, 25] });
+  let r = doDay(fresh(), "A1", { T3b: [15, 15, 25] });
   assert.equal(lift(r.state, "lat_pulldown", "T3").weight, 105);
   assert.equal(change(r, "lat_pulldown", "T3").kind, "increase");
   assert.equal(change(r, "lat_pulldown", "T3").message, "Next: 105 lb (3×15)");
-  r = doDay(fresh(), "A1", { T3a: [15, 15, 24] });
+  r = doDay(fresh(), "A1", { T3b: [15, 15, 24] });
   assert.equal(lift(r.state, "lat_pulldown", "T3").weight, 100);
   assert.equal(change(r, "lat_pulldown", "T3").kind, "same");
   assert.equal(change(r, "lat_pulldown", "T3").success, true);
@@ -316,15 +316,15 @@ test("T3 with no weight set yet changes nothing", () => {
 });
 
 test("bodyweight: last set >= target + 5 -> target + 2; 14 -> unchanged", () => {
-  let r = doDay(fresh(), "A1", { T3b: [10, 10, 15] });
+  let r = doDay(fresh(), "A1", { T3c: [10, 10, 15] });
   assert.equal(lift(r.state, "hanging_leg_raise", "T3").repTarget, 12);
   assert.equal(lift(r.state, "hanging_leg_raise", "T3").weight, null);
   assert.equal(change(r, "hanging_leg_raise", "T3").kind, "repTarget");
   assert.equal(change(r, "hanging_leg_raise", "T3").message, "Next: target 12 reps (3×12+)");
-  assert.equal(buildSlot(r.state, program, "A1", 3).scheme, "3×12+");
-  r = doDay(r.state, "A1", { T3b: [12, 12, 17] });
+  assert.equal(buildSlot(r.state, program, "A1", 4).scheme, "3×12+");
+  r = doDay(r.state, "A1", { T3c: [12, 12, 17] });
   assert.equal(lift(r.state, "hanging_leg_raise", "T3").repTarget, 14);
-  r = doDay(fresh(), "A1", { T3b: [10, 10, 14] });
+  r = doDay(fresh(), "A1", { T3c: [10, 10, 14] });
   assert.equal(lift(r.state, "hanging_leg_raise", "T3").repTarget, 10);
   assert.equal(change(r, "hanging_leg_raise", "T3").kind, "same");
 });
@@ -359,7 +359,7 @@ test("applyWorkout is pure and leaves workouts/rotation/pendingDecisions alone",
   assert.equal(r.state.workouts, s.workouts);
   assert.equal(r.state.rotationIndex, 0);
   assert.equal(r.state.pendingDecisions, s.pendingDecisions);
-  assert.equal(r.changes.length, 4);
+  assert.equal(r.changes.length, 5);
 });
 
 test("previewOutcomes", () => {
@@ -372,6 +372,71 @@ test("previewOutcomes", () => {
   assert.deepEqual(pv("lat_pulldown", "T3"), { onSuccess: "105 lb (last set ≥ 25)", onFail: "Same weight (100 lb)" });
   assert.deepEqual(pv("hanging_leg_raise", "T3"), { onSuccess: "Target 12 reps (last set ≥ 15)", onFail: "Same target (10 reps)" });
   assert.equal(pv("barbell_curl", "T3").onSuccess, "Set a starting weight");
+  assert.deepEqual(pv("rdl", "T3", { weight: 135, repTarget: 9 }), { onSuccess: "145 lb × 8 (all sets ≥ 12)", onFail: "Same weight, add reps (goal 9+ each set)" });
+  assert.deepEqual(pv("rdl", "T3", { weight: 135, repTarget: 12 }).onFail, "Same weight, aim for 12 on every set");
+});
+
+// ---------- double progression (RDL) ----------
+
+const withRdl = (weight, repTarget = 8) => {
+  const s = fresh();
+  return { ...s, lifts: { ...s.lifts, rdl: { T3: { ...s.lifts.rdl.T3, weight, stageStartWeight: weight, repTarget } } } };
+};
+
+test("RDL starts unset at 3×8 (8–12), straight sets, no AMRAP", () => {
+  assert.deepEqual(initialLiftState(program, "rdl", "T3"), { weight: null, stage: 1, stageStartWeight: null, repTarget: 8, history: [] });
+  const slot = buildSlot(fresh(), program, "A1", 2);
+  assert.equal(slot.exerciseId, "rdl");
+  assert.equal(slot.weight, null);
+  assert.equal(slot.scheme, "3×8 (8–12)");
+  assert.deepEqual(slot.repRange, { min: 8, max: 12 });
+  assert.equal(slot.hint, "Stop with ~2 reps in reserve");
+  assert.deepEqual(slot.sets.map((x) => [x.target, x.amrap]), [[8, false], [8, false], [8, false]]);
+  // Same exercise outside a T3 slot keeps the tier's normal rules.
+  assert.equal(prescription(program, "rdl", "T2", { stage: 1 }).scheme, "3×10");
+});
+
+test("RDL double progression: add reps until 3×12, then +10 lb and back to 8", () => {
+  let r = doDay(withRdl(135), "A1", { T3a: [10, 9, 9] });
+  assert.equal(lift(r.state, "rdl", "T3").weight, 135);
+  assert.equal(lift(r.state, "rdl", "T3").repTarget, 10);
+  assert.equal(change(r, "rdl", "T3").kind, "repTarget");
+  assert.equal(change(r, "rdl", "T3").message, "Next: 3×10 (8–12) at 135 lb");
+
+  r = doDay(r.state, "A2", { T3a: [12, 10, 9] }); // missed the goal of 10 on set 3
+  assert.equal(lift(r.state, "rdl", "T3").repTarget, 10);
+  assert.equal(lift(r.state, "rdl", "T3").weight, 135);
+  assert.equal(change(r, "rdl", "T3").kind, "same");
+
+  r = doDay(r.state, "A1", { T3a: [12, 12, 11] });
+  assert.equal(lift(r.state, "rdl", "T3").repTarget, 12);
+
+  r = doDay(r.state, "A2", { T3a: [12, 12, 12] });
+  assert.equal(lift(r.state, "rdl", "T3").weight, 145);
+  assert.equal(lift(r.state, "rdl", "T3").repTarget, 8);
+  assert.equal(change(r, "rdl", "T3").kind, "increase");
+  assert.equal(buildSlot(r.state, program, "A1", 2).scheme, "3×8 (8–12)");
+});
+
+test("RDL: reps past 12 still count as 12; incomplete sets block progress", () => {
+  let r = doDay(withRdl(135, 11), "A1", { T3a: [14, 13, 12] });
+  assert.equal(lift(r.state, "rdl", "T3").weight, 145);
+  r = doDay(withRdl(135, 9), "A1", { T3a: [12, 12, null] });
+  assert.equal(lift(r.state, "rdl", "T3").weight, 135);
+  assert.equal(lift(r.state, "rdl", "T3").repTarget, 9);
+});
+
+test("leg press: standard T3 on B days, +10 lb when the AMRAP hits 25", () => {
+  const s = fresh();
+  const slot = buildSlot(s, program, "B1", 4);
+  assert.equal(slot.exerciseId, "leg_press");
+  assert.equal(slot.weight, null);
+  assert.equal(slot.scheme, "3×15");
+  const set = { ...s, lifts: { ...s.lifts, leg_press: { T3: { ...s.lifts.leg_press.T3, weight: 200, stageStartWeight: 200 } } } };
+  let r = doDay(set, "B2", { T3c: [15, 15, 25] });
+  assert.equal(lift(r.state, "leg_press", "T3").weight, 210);
+  r = doDay(set, "B2", { T3c: [15, 15, 24] });
+  assert.equal(lift(r.state, "leg_press", "T3").weight, 200);
 });
 
 test("plates:false exercise in a T1 slot: reset weights are not rounded to the bar/plates", () => {

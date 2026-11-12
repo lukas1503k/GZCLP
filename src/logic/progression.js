@@ -19,9 +19,26 @@ function bodyweightRule(program, tier) {
   return program.tiers[tier]?.bodyweight ?? Object.values(program.tiers).find((t) => t.bodyweight)?.bodyweight;
 }
 
-/** "bodyweight" | "threshold" | "stages" */
-function ruleKind(exercise, def) {
+/**
+ * Exercise-level double progression (e.g. RDL 3×8–12): only applies in a T3 slot,
+ * so the same exercise used as a T1/T2 substitute still follows that tier's stages.
+ */
+export function doubleRule(exercise, tier) {
+  const p = exercise?.progression;
+  return tier === "T3" && p?.type === "double" && exercise.type !== "bodyweight" ? p : null;
+}
+
+const clamp = (n, lo, hi) => Math.min(Math.max(n, lo), hi);
+
+/** Current rep goal for a double-progression lift, kept inside the rule's range. */
+function doubleTarget(rule, liftState) {
+  return clamp(liftState?.repTarget ?? rule.minReps, rule.minReps, rule.maxReps);
+}
+
+/** "bodyweight" | "double" | "threshold" | "stages" */
+function ruleKind(exercise, def, tier) {
   if (exercise.type === "bodyweight") return "bodyweight";
+  if (doubleRule(exercise, tier)) return "double";
   if (def.weighted) return "threshold";
   return "stages";
 }
@@ -58,6 +75,8 @@ export function initialLiftState(program, exerciseId, tier) {
   let repTarget = null;
   if (ex.type === "bodyweight") {
     repTarget = ex.startingRepTarget ?? tierDef(program, tier).stages[0].reps;
+  } else if (doubleRule(ex, tier)) {
+    repTarget = doubleRule(ex, tier).minReps;
   }
   return { weight, stage: 1, stageStartWeight: weight, repTarget, history: [] };
 }
@@ -70,6 +89,12 @@ export function prescription(program, exerciseId, tier, liftState) {
     const target = liftState.repTarget;
     const sets = Array.from({ length: rule.sets }, (_, i) => ({ target, amrap: i === rule.sets - 1 }));
     return { stage: 1, sets, scheme: `${rule.sets}×${target}+` };
+  }
+  const dbl = doubleRule(ex, tier);
+  if (dbl) {
+    const target = doubleTarget(dbl, liftState);
+    const sets = Array.from({ length: dbl.sets }, () => ({ target, amrap: false }));
+    return { stage: 1, sets, scheme: `${dbl.sets}×${target} (${dbl.minReps}–${dbl.maxReps})` };
   }
   const stage = Math.min(Math.max(liftState.stage ?? 1, 1), def.stages.length);
   const s = def.stages[stage - 1];
@@ -137,7 +162,7 @@ function buildDecision(state, workout, program, exercise, slot, lift, cfg) {
 /** Evaluates one slot. Returns { next (LiftState|null = unchanged), kind, decision? }. */
 function evaluateSlot(state, workout, program, exercise, slot, prev, cfg) {
   const def = tierDef(program, slot.tier);
-  const kind = ruleKind(exercise, def);
+  const kind = ruleKind(exercise, def, slot.tier);
   const reps = (slot.sets ?? []).map((s) => s.reps ?? 0);
   const last = reps.length ? reps[reps.length - 1] : 0;
   const inc = incrementFor(exercise, state.settings);
@@ -152,6 +177,22 @@ function evaluateSlot(state, workout, program, exercise, slot, prev, cfg) {
   }
 
   if (slot.weight == null) return { next: null, kind: "same" };
+
+  if (kind === "double") {
+    // All sets at the top of the range -> add weight and drop back to the bottom.
+    // Otherwise keep the weight; once every set reaches the goal, the next goal is
+    // one rep past the weakest set (capped at the top of the range).
+    const rule = doubleRule(exercise, slot.tier);
+    const target = clamp(slot.repTarget ?? doubleTarget(rule, prev), rule.minReps, rule.maxReps);
+    const lowest = reps.length ? Math.min(...reps) : 0;
+    if (reps.length && lowest >= rule.maxReps) {
+      return { next: { ...prev, weight: round4(slot.weight + inc), stage: 1, repTarget: rule.minReps }, kind: "increase" };
+    }
+    if (reps.length && lowest >= target) {
+      return { next: { ...prev, weight: slot.weight, stage: 1, repTarget: Math.min(lowest + 1, rule.maxReps) }, kind: "repTarget" };
+    }
+    return { next: { ...prev, weight: slot.weight, stage: 1, repTarget: target }, kind: "same" };
+  }
 
   if (kind === "threshold") {
     if (last >= def.weighted.amrapThreshold) return { next: { ...prev, weight: round4(slot.weight + inc), stage: 1 }, kind: "increase" };
@@ -176,7 +217,7 @@ function changeMessage(kind, program, exercise, tier, next) {
   const hasStages = tierDef(program, tier).stages.length > 1 && exercise.type !== "bodyweight";
   switch (kind) {
     case "repTarget":
-      return `Next: target ${next.repTarget} reps (${scheme})`;
+      return doubleRule(exercise, tier) ? `Next: ${scheme} at ${lb(next.weight)}` : `Next: target ${next.repTarget} reps (${scheme})`;
     case "stage":
       return `Next: stage ${stage} (${scheme}) at ${lb(next.weight)}`;
     case "reset":
@@ -287,7 +328,7 @@ export function previewOutcomes(program, exerciseId, tier, liftState, settings) 
   const ex = getExercise(program, exerciseId);
   const def = tierDef(program, tier);
   const cfg = plateConfig(program, settings);
-  const kind = ruleKind(ex, def);
+  const kind = ruleKind(ex, def, tier);
   if (kind === "bodyweight") {
     const rule = bodyweightRule(program, tier);
     const t = liftState.repTarget;
@@ -299,6 +340,14 @@ export function previewOutcomes(program, exerciseId, tier, liftState, settings) 
   if (liftState.weight == null) return { onSuccess: "Set a starting weight", onFail: "Set a starting weight" };
   const w = roundWeightFor(ex, liftState.weight, cfg);
   const up = lb(round4(w + incrementFor(ex, settings)));
+  if (kind === "double") {
+    const rule = doubleRule(ex, tier);
+    const t = doubleTarget(rule, liftState);
+    return {
+      onSuccess: `${up} × ${rule.minReps} (all sets ≥ ${rule.maxReps})`,
+      onFail: t >= rule.maxReps ? `Same weight, aim for ${rule.maxReps} on every set` : `Same weight, add reps (goal ${t}+ each set)`,
+    };
+  }
   if (kind === "threshold") {
     return { onSuccess: `${up} (last set ≥ ${def.weighted.amrapThreshold})`, onFail: `Same weight (${lb(w)})` };
   }

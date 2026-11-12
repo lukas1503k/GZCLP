@@ -285,14 +285,14 @@ Substitution must never alter the original exercise's lift state or history (tes
 
 ### `src/state/schema.js`
 ```js
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 defaultSettings(programDefaults) -> Settings
 defaultState(programDefaults) -> State        // lifts {} (app calls ensureLifts), rotationIndex 0, workouts [], inProgress null, timer null, pendingDecisions [], program {substitutions:{}, customExercises:{}}
 validateState(obj) -> { ok: boolean, errors: string[] }   // structural validation used by import and load
 ```
 ### `src/state/migrations.js`
 ```js
-migrations: { [fromVersion]: (state) => state }   // migrations[0] upgrades v0 -> v1; migrations[1] is not defined (v1 is current)
+migrations: { [fromVersion]: (state) => state }   // migrations[0] upgrades v0 -> v1; migrations[1] v1 -> v2 (RDL slot inserted at A1/A2 index 2: shifts substitution keys and in-progress A-day slots); v2 is current
 migrate(raw) -> State                              // applies in order up to SCHEMA_VERSION; throws Error("newer schema version N; this app supports M") if raw.schemaVersion > SCHEMA_VERSION; missing schemaVersion = 0
 ```
 v0 (pre-release) = a state object with no `schemaVersion` and no `pendingDecisions`/`timer` fields; v0→v1 adds them with defaults. Include a test proving it.

@@ -69,7 +69,7 @@ test("load throws on structurally invalid data", () => {
 
 test("load throws on a newer schema version", () => {
   const st = createStorage(createMemoryBackend({ [STORAGE_KEY]: JSON.stringify({ ...sampleState(), schemaVersion: 9 }) }));
-  assert.throws(() => st.load(), /newer schema version 9; this app supports 1/);
+  assert.throws(() => st.load(), /newer schema version 9; this app supports 2/);
 });
 
 test("load migrates a v0 state", () => {
@@ -77,7 +77,7 @@ test("load migrates a v0 state", () => {
   delete v0.schemaVersion; delete v0.timer; delete v0.pendingDecisions;
   const st = createStorage(createMemoryBackend({ [STORAGE_KEY]: JSON.stringify(v0) }));
   const s = st.load();
-  assert.equal(s.schemaVersion, 1);
+  assert.equal(s.schemaVersion, 2);
   assert.equal(s.timer, null);
   assert.deepEqual(s.pendingDecisions, []);
 });

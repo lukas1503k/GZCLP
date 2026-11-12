@@ -21,14 +21,19 @@
           "label": "T2"
         },
         {
-          "exerciseId": "lat_pulldown",
+          "exerciseId": "rdl",
           "tier": "T3",
           "label": "T3a"
         },
         {
-          "exerciseId": "hanging_leg_raise",
+          "exerciseId": "lat_pulldown",
           "tier": "T3",
           "label": "T3b"
+        },
+        {
+          "exerciseId": "hanging_leg_raise",
+          "tier": "T3",
+          "label": "T3c"
         }
       ]
     },
@@ -54,6 +59,11 @@
           "exerciseId": "barbell_curl",
           "tier": "T3",
           "label": "T3b"
+        },
+        {
+          "exerciseId": "leg_press",
+          "tier": "T3",
+          "label": "T3c"
         }
       ]
     },
@@ -71,14 +81,19 @@
           "label": "T2"
         },
         {
-          "exerciseId": "lat_pulldown",
+          "exerciseId": "rdl",
           "tier": "T3",
           "label": "T3a"
         },
         {
-          "exerciseId": "hanging_leg_raise",
+          "exerciseId": "lat_pulldown",
           "tier": "T3",
           "label": "T3b"
+        },
+        {
+          "exerciseId": "hanging_leg_raise",
+          "tier": "T3",
+          "label": "T3c"
         }
       ]
     },
@@ -104,6 +119,11 @@
           "exerciseId": "barbell_curl",
           "tier": "T3",
           "label": "T3b"
+        },
+        {
+          "exerciseId": "leg_press",
+          "tier": "T3",
+          "label": "T3c"
         }
       ]
     }
@@ -219,11 +239,37 @@
         "T2": null,
         "T3": null
       },
-      "library": true,
+      "progression": {
+        "type": "double",
+        "sets": 3,
+        "minReps": 8,
+        "maxReps": 12,
+        "hint": "Stop with ~2 reps in reserve"
+      },
+      "alternatives": [
+        "stiff_leg_deadlift",
+        "good_morning"
+      ],
       "increment": 10,
       "smallIncrement": null,
       "warmup": true,
       "plates": true
+    },
+    "leg_press": {
+      "id": "leg_press",
+      "name": "Leg press",
+      "type": "machine",
+      "startingWeight": {
+        "T3": null
+      },
+      "alternatives": [
+        "hack_squat",
+        "bulgarian_split_squat"
+      ],
+      "increment": 10,
+      "smallIncrement": null,
+      "warmup": true,
+      "plates": false
     },
     "front_squat": {
       "id": "front_squat",
@@ -282,6 +328,88 @@
       "startingRepTarget": 8,
       "library": true,
       "increment": 0,
+      "smallIncrement": null,
+      "warmup": false,
+      "plates": false
+    },
+    "stiff_leg_deadlift": {
+      "id": "stiff_leg_deadlift",
+      "name": "Stiff-leg deadlift",
+      "type": "barbell",
+      "startingWeight": {
+        "T3": null
+      },
+      "progression": {
+        "type": "double",
+        "sets": 3,
+        "minReps": 8,
+        "maxReps": 12,
+        "hint": "Stop with ~2 reps in reserve"
+      },
+      "alternatives": [
+        "rdl",
+        "good_morning"
+      ],
+      "library": true,
+      "increment": 10,
+      "smallIncrement": null,
+      "warmup": true,
+      "plates": true
+    },
+    "good_morning": {
+      "id": "good_morning",
+      "name": "Good morning",
+      "type": "barbell",
+      "startingWeight": {
+        "T3": null
+      },
+      "progression": {
+        "type": "double",
+        "sets": 3,
+        "minReps": 8,
+        "maxReps": 12,
+        "hint": "Stop with ~2 reps in reserve"
+      },
+      "alternatives": [
+        "rdl",
+        "stiff_leg_deadlift"
+      ],
+      "library": true,
+      "increment": 5,
+      "smallIncrement": null,
+      "warmup": true,
+      "plates": true
+    },
+    "hack_squat": {
+      "id": "hack_squat",
+      "name": "Hack squat",
+      "type": "machine",
+      "startingWeight": {
+        "T3": null
+      },
+      "alternatives": [
+        "leg_press",
+        "bulgarian_split_squat"
+      ],
+      "library": true,
+      "increment": 10,
+      "smallIncrement": null,
+      "warmup": true,
+      "plates": false
+    },
+    "bulgarian_split_squat": {
+      "id": "bulgarian_split_squat",
+      "name": "Bulgarian split squat",
+      "type": "machine",
+      "startingWeight": {
+        "T3": null
+      },
+      "alternatives": [
+        "leg_press",
+        "hack_squat"
+      ],
+      "library": true,
+      "increment": 5,
       "smallIncrement": null,
       "warmup": false,
       "plates": false

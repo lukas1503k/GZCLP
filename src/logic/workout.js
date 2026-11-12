@@ -2,7 +2,7 @@
 import { getDay, getExercise } from "./program.js";
 import { plateConfig, roundToLoadable } from "./plates.js";
 import { warmupSets } from "./warmup.js";
-import { initialLiftState, prescription } from "./progression.js";
+import { doubleRule, initialLiftState, prescription } from "./progression.js";
 
 export function buildSlot(state, program, dayId, slotIndex) {
   const def = getDay(program, dayId).slots[slotIndex];
@@ -11,6 +11,7 @@ export function buildSlot(state, program, dayId, slotIndex) {
   const lift = state.lifts?.[exercise.id]?.[def.tier] ?? initialLiftState(program, exercise.id, def.tier);
   const cfg = plateConfig(program, state.settings);
   const isBodyweight = exercise.type === "bodyweight";
+  const dbl = doubleRule(exercise, def.tier);
 
   const requestedWeight = lift.weight ?? null;
   let weight = requestedWeight;
@@ -31,8 +32,9 @@ export function buildSlot(state, program, dayId, slotIndex) {
     stage,
     weight,
     requestedWeight,
-    repTarget: isBodyweight ? lift.repTarget : null,
+    repTarget: isBodyweight ? lift.repTarget : dbl ? sets[0].target : null,
     scheme,
+    ...(dbl ? { repRange: { min: dbl.minReps, max: dbl.maxReps }, hint: dbl.hint ?? null } : {}),
     sets: sets.map((s) => ({ target: s.target, reps: null, amrap: s.amrap, done: false })),
     warmups,
   };

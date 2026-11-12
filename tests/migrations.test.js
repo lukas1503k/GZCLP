@@ -21,16 +21,17 @@ function v0State() {
   };
 }
 
-test("SCHEMA_VERSION is 1 and migrations[0] exists, migrations[1] does not", () => {
-  assert.equal(SCHEMA_VERSION, 1);
+test("SCHEMA_VERSION is 2 and migrations[0..1] exist, migrations[2] does not", () => {
+  assert.equal(SCHEMA_VERSION, 2);
   assert.equal(typeof migrations[0], "function");
-  assert.equal(migrations[1], undefined);
+  assert.equal(typeof migrations[1], "function");
+  assert.equal(migrations[2], undefined);
 });
 
-test("v0 state migrates to a valid v1 state, keeping user data", () => {
+test("v0 state migrates to a valid current state, keeping user data", () => {
   const raw = v0State();
   const s = migrate(raw);
-  assert.equal(s.schemaVersion, 1);
+  assert.equal(s.schemaVersion, 2);
   assert.deepEqual(s.pendingDecisions, []);
   assert.equal(s.timer, null);
   assert.equal(s.rotationIndex, 1);
@@ -39,6 +40,50 @@ test("v0 state migrates to a valid v1 state, keeping user data", () => {
   assert.equal(s.settings.rest.T1, 150);
   assert.deepEqual(s.program.substitutions, { "A1:1": "incline_bench" });
   assert.deepEqual(validateState(s).errors, []);
+});
+
+// ---------- v1 -> v2: RDL slot inserted at A1/A2 index 2 ----------
+
+function v1State(extra = {}) {
+  return { ...migrations[0](v0State()), schemaVersion: 1, ...extra };
+}
+const a1Slot = (slotIndex, exerciseId, done = false) => ({
+  slotIndex, label: "x", exerciseId, tier: slotIndex < 2 ? (slotIndex ? "T2" : "T1") : "T3", stage: 1, weight: 100, repTarget: null,
+  scheme: "3×15", sets: [{ target: 15, reps: done ? 15 : null, amrap: false, done }], warmups: [],
+});
+const oldA1 = (done) => ({
+  id: "w9", dayId: "A1", startedAt: 9, finishedAt: null, changes: null, snapshotBefore: null,
+  slots: [a1Slot(0, "squat", done), a1Slot(1, "bench"), a1Slot(2, "lat_pulldown", done), a1Slot(3, "hanging_leg_raise")],
+});
+
+test("v1 -> v2 shifts A1/A2 substitutions at or after index 2; other days untouched", () => {
+  const s = migrate(v1State({ program: { customExercises: {}, substitutions: {
+    "A1:0": "front_squat", "A1:2": "dumbbell_row", "A2:3": "chin_up", "B1:2": "dumbbell_row", "B2:1": "incline_bench",
+  } } }));
+  assert.equal(s.schemaVersion, 2);
+  assert.deepEqual(s.program.substitutions, {
+    "A1:0": "front_squat", "A1:3": "dumbbell_row", "A2:4": "chin_up", "B1:2": "dumbbell_row", "B2:1": "incline_bench",
+  });
+  assert.deepEqual(validateState(s).errors, []);
+});
+
+test("v1 -> v2 drops an untouched old-layout A-day workout so it is rebuilt with the RDL slot", () => {
+  const s = migrate(v1State({ inProgress: oldA1(false), timer: null }));
+  assert.equal(s.inProgress, null);
+});
+
+test("v1 -> v2 keeps a started old-layout A-day workout, re-indexing its T3 slots and the timer", () => {
+  const timer = { endsAt: 10, durationSec: 75, exerciseId: "lat_pulldown", slotIndex: 2, setIndex: 0, kind: "working", nextLabel: null };
+  const s = migrate(v1State({ inProgress: oldA1(true), timer }));
+  assert.deepEqual(s.inProgress.slots.map((x) => [x.slotIndex, x.exerciseId]), [[0, "squat"], [1, "bench"], [3, "lat_pulldown"], [4, "hanging_leg_raise"]]);
+  assert.equal(s.timer.slotIndex, 3);
+  assert.deepEqual(validateState(s).errors, []);
+});
+
+test("v1 -> v2 leaves B-day workouts alone", () => {
+  const w = { ...oldA1(false), dayId: "B1" };
+  const s = migrate(v1State({ inProgress: w }));
+  assert.deepEqual(s.inProgress, w);
 });
 
 test("v0 migration fills other missing top-level defaults", () => {
@@ -70,8 +115,8 @@ test("current-version state passes through unchanged (but cloned)", () => {
 });
 
 test("newer schema version throws a clear error", () => {
-  assert.throws(() => migrate({ ...v0State(), schemaVersion: 2 }),
-    { message: "newer schema version 2; this app supports 1" });
+  assert.throws(() => migrate({ ...v0State(), schemaVersion: 3 }),
+    { message: "newer schema version 3; this app supports 2" });
 });
 
 test("invalid input throws", () => {
