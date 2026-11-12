@@ -24,10 +24,10 @@ test("shipped program.json matches SPEC §2", () => {
   assert.deepEqual(program.rotation, ["A1", "B1", "A2", "B2"]);
   const table = Object.fromEntries(program.rotation.map((d) => [d, program.days[d].slots.map((s) => `${s.label}:${s.exerciseId}:${s.tier}`)]));
   assert.deepEqual(table, {
-    A1: ["T1:squat:T1", "T2:bench:T2", "T3a:lat_pulldown:T3", "T3b:hanging_leg_raise:T3"],
-    B1: ["T1:ohp:T1", "T2:deadlift:T2", "T3a:barbell_row:T3", "T3b:barbell_curl:T3"],
-    A2: ["T1:bench:T1", "T2:squat:T2", "T3a:lat_pulldown:T3", "T3b:hanging_leg_raise:T3"],
-    B2: ["T1:deadlift:T1", "T2:ohp:T2", "T3a:barbell_row:T3", "T3b:barbell_curl:T3"],
+    A1: ["T1:squat:T1", "T2:bench:T2", "T3a:rdl:T3", "T3b:lat_pulldown:T3", "T3c:hanging_leg_raise:T3"],
+    B1: ["T1:ohp:T1", "T2:deadlift:T2", "T3a:barbell_row:T3", "T3b:barbell_curl:T3", "T3c:leg_press:T3"],
+    A2: ["T1:bench:T1", "T2:squat:T2", "T3a:rdl:T3", "T3b:lat_pulldown:T3", "T3c:hanging_leg_raise:T3"],
+    B2: ["T1:deadlift:T1", "T2:ohp:T2", "T3a:barbell_row:T3", "T3b:barbell_curl:T3", "T3c:leg_press:T3"],
   });
   const ex = program.exercises;
   assert.deepEqual(ex.squat.startingWeight, { T1: 245, T2: 185 });
@@ -43,7 +43,13 @@ test("shipped program.json matches SPEC §2", () => {
   assert.equal(ex.hanging_leg_raise.startingRepTarget, 10);
   assert.equal(ex.lat_pulldown.plates, false);
   assert.equal(ex.hanging_leg_raise.plates, false);
-  for (const id of ["rdl", "front_squat", "incline_bench", "dumbbell_row", "chin_up"]) assert.equal(ex[id].library, true, id);
+  for (const id of ["front_squat", "incline_bench", "dumbbell_row", "chin_up", "stiff_leg_deadlift", "good_morning", "hack_squat", "bulgarian_split_squat"]) assert.equal(ex[id].library, true, id);
+  assert.equal(ex.rdl.library, undefined, "RDL is in the program now");
+  assert.deepEqual(ex.rdl.progression, { type: "double", sets: 3, minReps: 8, maxReps: 12, hint: "Stop with ~2 reps in reserve" });
+  assert.deepEqual([ex.rdl.increment, ex.rdl.startingWeight.T3], [10, null]);
+  assert.deepEqual(ex.rdl.alternatives, ["stiff_leg_deadlift", "good_morning"]);
+  assert.deepEqual([ex.leg_press.type, ex.leg_press.increment, ex.leg_press.startingWeight.T3, ex.leg_press.progression], ["machine", 10, null, undefined]);
+  assert.deepEqual(ex.leg_press.alternatives, ["hack_squat", "bulgarian_split_squat"]);
   assert.equal(ex.dumbbell_row.type, "machine");
   assert.equal(ex.dumbbell_row.plates, false);
   assert.equal(ex.chin_up.type, "bodyweight");
@@ -58,6 +64,9 @@ test("validateProgram rejects broken programs", () => {
   rejects((p) => { p.days.A1.slots[0].exerciseId = "nope"; }, /not a defined exercise/);
   rejects((p) => { p.days.A1.slots[0].tier = "T9"; }, /not a defined tier/);
   rejects((p) => { p.rotation.push("C1"); }, /rotation day "C1"/);
+  rejects((p) => { p.exercises.rdl.progression.type = "pyramid"; }, /progression.type/);
+  rejects((p) => { p.exercises.rdl.progression.maxReps = 6; }, /minReps <= maxReps/);
+  rejects((p) => { p.exercises.rdl.alternatives = ["nope"]; }, /"nope" is not a defined exercise/);
   rejects((p) => { p.rotation = []; }, /rotation/);
   rejects((p) => { delete p.version; }, /version/);
   rejects((p) => { p.exercises.squat.type = "kettlebell"; }, /type/);
@@ -103,7 +112,7 @@ test("effectiveProgram merges custom exercises & applies substitutions without m
   assert.equal(getDay(eff, "B1").slots[1].originalExerciseId, "deadlift");
   assert.equal(getDay(eff, "B2").slots[0].exerciseId, "deadlift");
   assert.equal(getDay(eff, "A1").slots[2].exerciseId, "custom_x");
-  assert.equal(getDay(eff, "A1").slots[3].exerciseId, "hanging_leg_raise", "unknown substitute ignored");
+  assert.equal(getDay(eff, "A1").slots[3].exerciseId, "lat_pulldown", "unknown substitute ignored");
   assert.equal(getExercise(eff, "custom_x").name, "X");
   assert.equal(validateProgram(eff).ok, true);
   assert.deepEqual(effectiveProgram(program, undefined).days.A1.slots[0].exerciseId, "squat");
@@ -114,10 +123,10 @@ test("effectiveProgram merges custom exercises & applies substitutions without m
 test("listSlots", () => {
   const eff = effectiveProgram(program, { substitutions: { "B1:1": "rdl" }, customExercises: {} });
   const slots = listSlots(eff);
-  assert.equal(slots.length, 16);
+  assert.equal(slots.length, 20);
   assert.deepEqual(slots[0], { dayId: "A1", slotIndex: 0, exerciseId: "squat", tier: "T1", label: "T1", originalExerciseId: "squat" });
   assert.deepEqual(slots.find((s) => s.dayId === "B1" && s.slotIndex === 1), { dayId: "B1", slotIndex: 1, exerciseId: "rdl", tier: "T2", label: "T2", originalExerciseId: "deadlift" });
-  assert.equal(listSlots(program)[5].originalExerciseId, "deadlift");
+  assert.equal(listSlots(program)[6].originalExerciseId, "deadlift");
 });
 
 // ---------- program-driven behaviour (no hard-coding) ----------
@@ -144,7 +153,7 @@ test("starting weights, thresholds, rep rules and stages come from program.json"
   p.tiers.T3.bodyweight.repTargetIncrement = 3;
   p.tiers.T3.bodyweight.amrapBonus = 2;
   p.tiers.T1.stages[0] = { sets: 4, reps: 4, amrap: true };
-  const s = runA1(p, {}, { T3a: [15, 15, 20], T3b: [10, 10, 12] });
+  const s = runA1(p, {}, { T3b: [15, 15, 20], T3c: [10, 10, 12] });
   assert.equal(s.lifts.squat.T1.weight, 310);
   assert.equal(s.lifts.lat_pulldown.T3.weight, 110);
   assert.equal(s.lifts.hanging_leg_raise.T3.repTarget, 13);

@@ -3,6 +3,7 @@
 import { h, mount, fmtNum, uniqueId } from "../dom.js";
 import { plateConfig, loadStep } from "../../logic/plates.js";
 import { listSlots } from "../../logic/program.js";
+import { doubleRule } from "../../logic/progression.js";
 import { weightLabel } from "../components/plateBadge.js";
 import { numberStepper, confirmDialog, showToast } from "../components/dialog.js";
 
@@ -136,6 +137,7 @@ function overrideSection(ctx) {
   const ex = exerciseOf(ctx, exerciseId);
   const lift = ctx.state.lifts?.[exerciseId]?.[tier] || { weight: null, stage: 1, stageStartWeight: null, repTarget: null };
   const bodyweight = ex.type === "bodyweight";
+  const dbl = doubleRule(ex, tier);
   const staged = !bodyweight && (tier === "T1" || tier === "T2");
   const step = ex.plates ? loadStep(cfg) : 5;
 
@@ -144,7 +146,11 @@ function overrideSection(ctx) {
   const weight = bodyweight ? null : numberStepper({ value: lift.weight, step, min: 0, max: 2000, label: "Weight (lb)", onInput: updatePreview });
   if (weight) updatePreview(weight.get());
   const ssw = staged ? numberStepper({ value: lift.stageStartWeight, step, min: 0, max: 2000, label: "Stage-1 start weight (lb)" }) : null;
-  const rep = bodyweight ? numberStepper({ value: lift.repTarget, step: 1, min: 1, max: 100, integer: true, label: "Rep target" }) : null;
+  const rep = bodyweight
+    ? numberStepper({ value: lift.repTarget, step: 1, min: 1, max: 100, integer: true, label: "Rep target" })
+    : dbl
+      ? numberStepper({ value: lift.repTarget ?? dbl.minReps, step: 1, min: dbl.minReps, max: dbl.maxReps, integer: true, label: "Rep target" })
+      : null;
   const stages = ctx.program.tiers?.[tier]?.stages || [];
   let stageValue = String(lift.stage || 1);
   const stageSelect = staged ? selectField({
@@ -184,7 +190,7 @@ function overrideSection(ctx) {
     stageSelect,
     ssw ? h("div", { class: "field" }, h("span", { class: "field-label" }, "Stage-1 start weight (used by T2 reset)"),
       h("div", { class: "stepper-row" }, ssw.el, h("span", { class: "stepper-unit" }, "lb"))) : null,
-    rep ? h("div", { class: "field" }, h("span", { class: "field-label" }, "Rep target"),
+    rep ? h("div", { class: "field" }, h("span", { class: "field-label" }, dbl ? `Rep target (${dbl.minReps}–${dbl.maxReps})` : "Rep target"),
       h("div", { class: "stepper-row" }, rep.el, h("span", { class: "stepper-unit" }, "reps"))) : null,
     h("div", { class: "field" }, h("label", { class: "field-label", for: reasonId }, "Reason (optional)"), reason),
     h("button", { type: "button", class: "btn btn-primary btn-block", onClick: apply }, "Apply change"),
@@ -208,11 +214,15 @@ function substitutionSection(ctx) {
         const key = `${sl.dayId}:${sl.slotIndex}`;
         const original = sl.originalExerciseId || sl.exerciseId;
         const candidates = all.filter((e) => e.id !== original && ((sl.tier === "T1" || sl.tier === "T2") ? e.type !== "bodyweight" : true));
+        // Suggested swaps (program.json `alternatives`) go first.
+        const alts = exerciseOf(ctx, original).alternatives || [];
+        const rank = (e) => { const i = alts.indexOf(e.id); return i === -1 ? alts.length : i; };
+        const ordered = candidates.map((e, i) => ({ e, i })).sort((a, b) => rank(a.e) - rank(b.e) || a.i - b.i).map(({ e }) => e);
         return selectField({
           label: `${sl.label || sl.tier} · ${exerciseOf(ctx, original).name}`,
           value: subs[key] || "",
           options: [{ value: "", label: `${exerciseOf(ctx, original).name} (default)` },
-            ...candidates.map((e) => ({ value: e.id, label: e.name }))],
+            ...ordered.map((e) => ({ value: e.id, label: alts.includes(e.id) ? `${e.name} (suggested)` : e.name }))],
           onChange: (v) => ctx.actions.setSubstitution(sl.dayId, sl.slotIndex, v || null),
         });
       }))),

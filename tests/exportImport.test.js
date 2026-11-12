@@ -133,7 +133,7 @@ test("export/import round-trip deep-equals the original state", () => {
 
 test("summary lists workouts count and lift weights", () => {
   const r = parseBackup(serializeBackup(fixtureState(), T0).text);
-  assert.equal(r.summary.schemaVersion, 1);
+  assert.equal(r.summary.schemaVersion, SCHEMA_VERSION);
   assert.equal(r.summary.workouts, 2);
   assert.deepEqual(r.summary.lifts.find((l) => l.exerciseId === "squat" && l.tier === "T1"),
     { exerciseId: "squat", tier: "T1", weight: 255, stage: 1, repTarget: null });
@@ -154,7 +154,7 @@ test("migrates an older (v0) backup", () => {
   delete s.schemaVersion; delete s.pendingDecisions; delete s.timer;
   const r = parseBackup(JSON.stringify({ app: "gzclp", exportedAt: T0, state: s }));
   assert.equal(r.ok, true, r.error);
-  assert.equal(r.state.schemaVersion, 1);
+  assert.equal(r.state.schemaVersion, SCHEMA_VERSION);
   assert.deepEqual(r.state.pendingDecisions, []);
   assert.equal(r.state.timer, null);
 });
@@ -172,7 +172,7 @@ test("rejects JSON that isn't a GZCLP backup", () => {
 
 test("rejects newer schema version with a clear message", () => {
   const s = { ...fixtureState(), schemaVersion: 3 };
-  const msg = "This backup was made by a newer version of the app (schema 3); this app supports schema 1.";
+  const msg = `This backup was made by a newer version of the app (schema 3); this app supports schema ${SCHEMA_VERSION}.`;
   assert.deepEqual(parseBackup(JSON.stringify({ app: "gzclp", exportedAt: T0, schemaVersion: 3, state: s })),
     { ok: false, error: msg });
   assert.deepEqual(parseBackup(JSON.stringify(s)), { ok: false, error: msg });

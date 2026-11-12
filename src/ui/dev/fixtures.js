@@ -148,7 +148,7 @@ function currentLifts() {
 
 function base(extra = {}) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     program: { substitutions: {}, customExercises: {} },
     lifts: currentLifts(),
     rotationIndex: 0,
@@ -252,7 +252,7 @@ function summaryClean() {
 
 function empty() {
   return {
-    schemaVersion: 1, program: { substitutions: {}, customExercises: {} }, lifts: {}, rotationIndex: 0,
+    schemaVersion: 2, program: { substitutions: {}, customExercises: {} }, lifts: {}, rotationIndex: 0,
     workouts: [], inProgress: null, timer: null, pendingDecisions: [], settings: settings(),
   };
 }

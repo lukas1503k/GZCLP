@@ -6,19 +6,19 @@ import { h } from "../dom.js";
 const LONG_PRESS_MS = 500;
 const MOVE_TOLERANCE_PX = 12;
 
-export function createSetButton({ set, index, onTap, onFewer, isNext = false, total = null, showFewer = true }) {
+export function createSetButton({ set, index, onTap, onFewer, isNext = false, total = null, showFewer = true, rangeMax = null }) {
   const success = set.done && set.reps != null && set.reps >= set.target;
   const state = set.done ? (success ? "is-success" : "is-fail") : isNext ? "is-next" : "is-todo";
   const targetText = `${set.target}${set.amrap ? "+" : ""}`;
   const setNo = index + 1;
   const aria = set.done
     ? `Set ${setNo}${total ? ` of ${total}` : ""}: ${set.reps} reps logged, target ${targetText}. ${success ? "Hit" : "Missed"}. Tap to edit.`
-    : `Set ${setNo}${total ? ` of ${total}` : ""}: target ${targetText} reps${set.amrap ? ", as many as possible" : ""}. Tap to log.`;
+    : `Set ${setNo}${total ? ` of ${total}` : ""}: target ${targetText} reps${set.amrap ? ", as many as possible" : rangeMax ? `, up to ${rangeMax}` : ""}. Tap to log.`;
 
   const main = h("button", { type: "button", class: `set-btn ${state}${set.amrap ? " is-amrap" : ""}`, "aria-label": aria },
     h("span", { class: "set-btn-reps" }, set.done ? String(set.reps) : targetText),
     h("span", { class: "set-btn-caption", "aria-hidden": "true" },
-      set.done ? `${success ? "✓" : "✗"} of ${targetText}` : set.amrap ? "AMRAP" : `set ${setNo}`),
+      set.done ? `${success ? "✓" : "✗"} of ${targetText}` : set.amrap ? "AMRAP" : rangeMax ? `up to ${rangeMax}` : `set ${setNo}`),
   );
 
   let timer = null;

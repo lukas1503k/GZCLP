@@ -39,12 +39,12 @@ test("full A1 scenario with persistence, rotation, undo and backup", () => {
   assert.equal(nextDayId(program, state.rotationIndex), "A1");
   let w = buildWorkout(state, program, "A1", T0);
   assert.deepEqual(w.slots.map((s) => [s.exerciseId, s.tier, s.weight]), [
-    ["squat", "T1", 245], ["bench", "T2", 110], ["lat_pulldown", "T3", 100], ["hanging_leg_raise", "T3", null],
+    ["squat", "T1", 245], ["bench", "T2", 110], ["rdl", "T3", null], ["lat_pulldown", "T3", 100], ["hanging_leg_raise", "T3", null],
   ]);
   assert.equal(w.slots[0].warmups.map((x) => `${x.weight}x${x.reps}`).join(","), "45x10,100x5,145x3,185x2,210x1");
 
   // Log everything at target except one squat set; lat pulldown AMRAP 25; leg raise AMRAP 15.
-  w = doAll(w, { "0:2": 2, "2:2": 25, "3:2": 15 });
+  w = doAll(w, { "0:2": 2, "3:2": 25, "4:2": 15 });
   state = { ...state, inProgress: w };
 
   // Mid-workout persistence round-trip.

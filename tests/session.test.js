@@ -25,7 +25,7 @@ function next(state, program, now, repsFor) {
 
 test("ensureLifts adds every (exercise, tier) used by days and never touches existing", () => {
   const s = ensureLifts(empty(), base);
-  assert.deepEqual(Object.keys(s.lifts).sort(), ["barbell_curl", "barbell_row", "bench", "deadlift", "hanging_leg_raise", "lat_pulldown", "ohp", "squat"]);
+  assert.deepEqual(Object.keys(s.lifts).sort(), ["barbell_curl", "barbell_row", "bench", "deadlift", "hanging_leg_raise", "lat_pulldown", "leg_press", "ohp", "rdl", "squat"]);
   assert.deepEqual(Object.keys(s.lifts.squat).sort(), ["T1", "T2"]);
   assert.equal(s.lifts.deadlift.T1.weight, 270);
   assert.equal(s.lifts.deadlift.T2.weight, 205);
@@ -33,7 +33,11 @@ test("ensureLifts adds every (exercise, tier) used by days and never touches exi
   assert.equal(s.lifts.ohp.T2.weight, 75);
   assert.equal(s.lifts.bench.T1.weight, 145);
   assert.equal(s.lifts.barbell_row.T3.weight, 95);
-  assert.equal(s.lifts.rdl, undefined);
+  assert.deepEqual(Object.keys(s.lifts.rdl), ["T3"]);
+  assert.equal(s.lifts.rdl.T3.weight, null, "RDL starting weight is entered on first use");
+  assert.equal(s.lifts.rdl.T3.repTarget, 8);
+  assert.equal(s.lifts.leg_press.T3.weight, null);
+  assert.equal(s.lifts.front_squat, undefined, "library exercises get no state until used");
   const custom = { ...s, lifts: { ...s.lifts, squat: { ...s.lifts.squat, T1: { ...s.lifts.squat.T1, weight: 999 } } } };
   assert.equal(ensureLifts(custom, base).lifts.squat.T1.weight, 999);
 });
@@ -47,7 +51,7 @@ test("finishWorkout: snapshot, rotation advance, cleanup", () => {
   assert.equal(s1.workouts.length, 1);
   const w = s1.workouts[0];
   assert.equal(w.finishedAt, 110);
-  assert.equal(w.changes.length, 4);
+  assert.equal(w.changes.length, 5);
   assert.deepEqual(w.snapshotBefore, { lifts: s0.lifts, rotationIndex: 0 });
   assert.notEqual(w.snapshotBefore.lifts, s0.lifts, "deep clone");
   assert.equal(s1.lifts.squat.T1.weight, 255);
@@ -126,7 +130,7 @@ test("applyOverride logs an override event and next buildSlot uses it", () => {
   assert.equal(s0.lifts.squat.T1.weight, 245, "input untouched");
   assert.equal(applyOverride(s0, "squat", "T1", { weight: 200 }, "  ", 1).lifts.squat.T1.history.at(-1).reason, null);
   const rt = applyOverride(s0, "hanging_leg_raise", "T3", { repTarget: 14 }, null, 1);
-  assert.equal(buildSlot(rt, base, "A1", 3).scheme, "3×14+");
+  assert.equal(buildSlot(rt, base, "A1", 4).scheme, "3×14+");
   const ssw = applyOverride(s0, "bench", "T2", { stageStartWeight: 100 }, null, 1);
   assert.equal(ssw.lifts.bench.T2.stageStartWeight, 100);
   assert.equal(ssw.lifts.bench.T2.weight, 110);
@@ -151,7 +155,7 @@ test("substitution: T2 Deadlift -> RDL gets its own state; deadlift T1/T2 untouc
   assert.deepEqual(s.lifts.deadlift, deadliftBefore, "setSubstitution touches no lift state");
   const program = effectiveProgram(base, s.program);
   s = ensureLifts(s, program);
-  assert.deepEqual(s.lifts.rdl, { T2: { weight: null, stage: 1, stageStartWeight: null, repTarget: null, history: [] } });
+  assert.deepEqual(s.lifts.rdl.T2, { weight: null, stage: 1, stageStartWeight: null, repTarget: null, history: [] });
   s = applyOverride(s, "rdl", "T2", { weight: 135 }, "starting weight", 150);
   const slot = buildSlot(s, program, "B1", 1);
   assert.deepEqual([slot.exerciseId, slot.tier, slot.weight, slot.scheme], ["rdl", "T2", 135, "3×10"]);

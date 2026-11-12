@@ -24,17 +24,19 @@ The app must do the thinking: show me the next workout, tell me the weight and t
 ### Rotation
 Four days, cycled in order regardless of calendar: A1 → B1 → A2 → B2 → A1 … The app always shows the next uncompleted day. Completing a workout advances the pointer. Abandoning a workout does not.
 
-| Day | T1 | T2 | T3a | T3b |
-|---|---|---|---|---|
-| A1 | Squat | Bench | Lat pulldown | Hanging leg raise |
-| B1 | OHP | Deadlift | Barbell row | Barbell curl |
-| A2 | Bench | Squat | Lat pulldown | Hanging leg raise |
-| B2 | Deadlift | OHP | Barbell row | Barbell curl |
+| Day | T1 | T2 | T3a | T3b | T3c |
+|---|---|---|---|---|---|
+| A1 | Squat | Bench | Romanian deadlift | Lat pulldown | Hanging leg raise |
+| B1 | OHP | Deadlift | Barbell row | Barbell curl | Leg press |
+| A2 | Bench | Squat | Romanian deadlift | Lat pulldown | Hanging leg raise |
+| B2 | Deadlift | OHP | Barbell row | Barbell curl | Leg press |
+
+Leg accessories: RDL runs on every squat day (A1/A2), right after T2; leg press on every deadlift day (B1/B2), with the other T3s.
 
 ### Starting weights (lb)
 - **T1:** Squat 245, Deadlift 270, Bench 145, OHP 100
 - **T2:** Squat 185, Deadlift 205, Bench 110, OHP 75
-- **T3:** Barbell row 95, Lat pulldown 100, Barbell curl **null** → app must prompt for a starting weight on first use and persist it
+- **T3:** Barbell row 95, Lat pulldown 100, Barbell curl / Romanian deadlift / Leg press **null** → app must prompt for a starting weight on first use and persist it
 - **Hanging leg raise:** bodyweight, rep-target based (starting target 3×10)
 
 Note: the same lift has independent state in T1 and T2. Squat-as-T1 and Squat-as-T2 are tracked separately.
@@ -42,7 +44,7 @@ Note: the same lift has independent state in T1 and T2. Squat-as-T1 and Squat-as
 ### Increments (lb)
 - Squat +10, Deadlift +10, Bench +5, OHP +5
 - Settings toggle: use +2.5 for Bench/OHP instead of +5. This toggle only makes sense when 1.25 lb plates are enabled; the UI should say so.
-- T3 weighted lifts: +5 on success
+- T3 weighted lifts: +5 on success (RDL and leg press: +10)
 
 ### `program.json` shape
 Must contain: `version`, `rotation` (ordered day ids), `days` (each with ordered slots `{exerciseId, tier}`), `exercises` (each with `id`, `name`, `type: "barbell" | "machine" | "bodyweight"`, `startingWeight` per tier where applicable, `increment`, `warmup: true/false`, `plates: true/false`), `tiers` (stage definitions per tier, below), and `defaults` (rest seconds, bar weight, available plates). Provide a JSON Schema or a validator function and test that the shipped `program.json` passes it.
@@ -86,6 +88,15 @@ All rules operate on a per-(exercise, tier) state object: `{ weight, stage, stag
 ### T3 (weighted: barbell row, lat pulldown, barbell curl)
 - Always 3 × 15, last set AMRAP.
 - If the last set reaches **≥ 25 reps** → weight + 5 next time. Otherwise weight unchanged. No stages, no failure state.
+
+### Romanian deadlift (T3 slot, double progression)
+- Exercise-level `progression: { type: "double", sets: 3, minReps: 8, maxReps: 12 }` in `program.json`; it only applies when the exercise sits in a T3 slot (as a T1/T2 substitute it follows that tier's stages). Stiff-leg deadlift and good morning (its suggested substitutes) carry the same rule.
+- 3 straight sets (no AMRAP) at the current rep goal, which starts at 8. Reps are entered per set (tapping a set opens the rep entry). UI hint: "Stop with ~2 reps in reserve".
+- All 3 sets ≥ 12 → weight + 10, goal back to 8.
+- Otherwise the weight stays. If every set reached the goal, the next goal is the weakest set + 1 (max 12); if not, the goal is unchanged.
+
+### Leg press (T3, standard rule)
+- 3 × 15, last set AMRAP; AMRAP ≥ 25 → + 10 lb. Suggested substitutes: hack squat, Bulgarian split squat.
 
 ### Hanging leg raise (bodyweight, rep-target)
 - 3 sets, last set AMRAP, target starts at 10.

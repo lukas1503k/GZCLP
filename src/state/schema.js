@@ -1,7 +1,7 @@
 // State schema: version constant, defaults, and a hand-written structural validator.
 // See docs/CONTRACTS.md §3 (shapes) and §5 (API).
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 const FALLBACK_DEFAULTS = Object.freeze({
   barWeight: 45,

@@ -60,6 +60,17 @@ function validateExercise(id, ex, tiers, errors) {
   if (typeof ex.warmup !== "boolean") errors.push(`${p}.warmup must be boolean`);
   if (typeof ex.plates !== "boolean") errors.push(`${p}.plates must be boolean`);
   if (ex.type === "bodyweight" && !isPosInt(ex.startingRepTarget)) errors.push(`${p}.startingRepTarget must be a positive integer for bodyweight exercises`);
+  if (ex.progression !== undefined) {
+    const pr = ex.progression;
+    if (!isObj(pr) || pr.type !== "double") errors.push(`${p}.progression.type must be "double"`);
+    else if (!isPosInt(pr.sets) || !isPosInt(pr.minReps) || !isPosInt(pr.maxReps) || pr.maxReps < pr.minReps) {
+      errors.push(`${p}.progression needs integer sets, minReps <= maxReps`);
+    } else if (pr.hint !== undefined && typeof pr.hint !== "string") errors.push(`${p}.progression.hint must be a string`);
+    if (ex.type === "bodyweight") errors.push(`${p}.progression is not supported for bodyweight exercises`);
+  }
+  if (ex.alternatives !== undefined && !(Array.isArray(ex.alternatives) && ex.alternatives.every((a) => typeof a === "string"))) {
+    errors.push(`${p}.alternatives must be an array of exercise ids`);
+  }
 }
 
 function validateDefaults(d, errors) {
@@ -80,7 +91,12 @@ export function validateProgram(json) {
   for (const [k, t] of Object.entries(tiers)) validateTier(k, t, errors);
   const exercises = isObj(json.exercises) ? json.exercises : {};
   if (!isObj(json.exercises)) errors.push("exercises must be an object");
-  for (const [id, ex] of Object.entries(exercises)) validateExercise(id, ex, tiers, errors);
+  for (const [id, ex] of Object.entries(exercises)) {
+    validateExercise(id, ex, tiers, errors);
+    for (const alt of Array.isArray(ex?.alternatives) ? ex.alternatives : []) {
+      if (!(alt in exercises)) errors.push(`exercises.${id}.alternatives: "${alt}" is not a defined exercise`);
+    }
+  }
   const days = isObj(json.days) ? json.days : {};
   if (!isObj(json.days)) errors.push("days must be an object");
   for (const [dayId, day] of Object.entries(days)) {

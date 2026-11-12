@@ -39,3 +39,8 @@ test("small plates change rounding", () => {
   // 0.4*245 = 98 -> 97.5; 0.6*245 = 147 -> 147.5; 0.75*245 = 183.75 -> 182.5 (tie down); 0.85*245 = 208.25 -> 207.5
   assert.deepEqual(brief(warmupSets(245, small, scheme)), ["45×10", "97.5×5", "147.5×3", "182.5×2", "207.5×1"]);
 });
+
+test("non-plate exercises skip the bar set and round to 5 lb", () => {
+  assert.deepEqual(brief(warmupSets(100, cfg, scheme, { plates: false })), ["40×5", "60×3", "75×2", "85×1"]);
+  assert.deepEqual(brief(warmupSets(10, cfg, scheme, { plates: false })), ["5×5"]);
+});

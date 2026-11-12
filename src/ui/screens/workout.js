@@ -66,7 +66,8 @@ async function handleSetTap(ctx, slot, setIndex, mode) {
     return;
   }
 
-  if (mode === "tap" && !set.amrap) {
+  const range = slot.repRange;
+  if (mode === "tap" && !set.amrap && !range) {
     ctx.actions.logSet(slot.slotIndex, setIndex, set.target);
     return;
   }
@@ -74,7 +75,9 @@ async function handleSetTap(ctx, slot, setIndex, mode) {
   const initial = mode === "fewer" ? Math.max(0, set.target - 1) : set.target;
   const hint = mode === "fewer"
     ? `Target ${targetText}. How many reps did you get?`
-    : `AMRAP — target ${targetText}. Enter every rep you got.`;
+    : range
+      ? `Goal ${set.target}, range ${range.min}–${range.max}.${slot.hint ? ` ${slot.hint}.` : ""} Enter the reps you got.`
+      : `AMRAP — target ${targetText}. Enter every rep you got.`;
   const result = await openRepEntry({ title, initial, min: 0, max: 100, hint });
   if (result != null && result !== "clear") ctx.actions.logSet(slot.slotIndex, setIndex, result);
 }
@@ -158,7 +161,7 @@ function renderSlot(ctx, workout, slot, cfg, next) {
     },
       slot.sets.map((set, i) => {
         const cell = createSetButton({
-          set, index: i, total: slot.sets.length,
+          set, index: i, total: slot.sets.length, rangeMax: slot.repRange?.max ?? null,
           isNext: !!next && next.slotIndex === slot.slotIndex && next.setIndex === i,
           onTap: () => handleSetTap(ctx, slot, i, "tap"),
           onFewer: () => handleSetTap(ctx, slot, i, set.done ? "edit" : "fewer"),
@@ -178,6 +181,7 @@ function renderSlot(ctx, workout, slot, cfg, next) {
     h("p", { class: "slot-meta" },
       h("span", {}, schemeLine(slot)),
       restSec ? h("span", { class: "slot-rest" }, `rest ${formatRemaining(restSec * 1000)}`) : null),
+    slot.hint ? h("p", { class: "slot-hint" }, slot.hint) : null,
     weightLine,
     needsWeight ? null : renderWarmups(ctx, workout, slot, cfg, exercise),
     body,

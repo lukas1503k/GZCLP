@@ -64,6 +64,7 @@
 .tier-T3 { background: var(--tier-t3); }
 
 .slot-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; color: var(--text-muted); font-size: var(--fs-sm); font-weight: 600; }
+.slot-hint { margin: 4px 0 0; color: var(--text-muted); font-size: var(--fs-sm); font-style: italic; }
 .slot-rest { color: var(--text-dim); }
 .slot-weight { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
 .slot-reptarget { color: var(--text-muted); font-weight: 650; }
